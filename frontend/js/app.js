@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    PsychHealth — Core Application Controller & Router
    Mobile-First SPA with Responsive Sidebar Drawer & Touch Handlers
    ============================================================ */
@@ -59,16 +59,6 @@ const App = {
             };
         }
 
-        // Participant Profile Badge Click
-        const participantBadge = document.getElementById('sidebar-participant');
-        if (participantBadge) {
-            participantBadge.style.cursor = 'pointer';
-            participantBadge.onclick = () => {
-                window.location.hash = '#/profile';
-                closeDrawer();
-            };
-        }
-
         // Render Sidebar Navigation Links
         this.renderSidebarNav();
     },
@@ -110,10 +100,6 @@ const App = {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
                 <span>Dashboard</span>
             </a>
-            <a href="#/profile" class="sidebar-link" data-route="profile">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                <span>Profile</span>
-            </a>
             <a href="#/pss" class="sidebar-link" data-route="pss">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 <span>Take PSS Assessment</span>
@@ -147,10 +133,14 @@ const App = {
                 <span>Progress Trends</span>
             </a>
 
-            <div class="nav-section-title mt-xs">Research</div>
+            <div class="nav-section-title mt-xs">Research (Avishkar)</div>
             <a href="#/researcher" class="sidebar-link" data-route="researcher">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>Pilot Cohort (N=16)</span>
+            </a>
+            <a href="#/methodology" class="sidebar-link" data-route="methodology">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
+                <span>Methodology &amp; PSS-10</span>
             </a>
         `;
 
@@ -187,7 +177,6 @@ const App = {
 
             case 'onboarding':
                 main.innerHTML = Screens.renderOnboarding();
-                this.bindOnboardingEvents();
                 break;
 
             case 'consent':
@@ -226,7 +215,9 @@ const App = {
 
             case 'processing':
                 main.innerHTML = Screens.renderProcessing();
-                this.animateProcessingStages();
+                setTimeout(() => {
+                    window.location.hash = '#/results';
+                }, 1600);
                 break;
 
             case 'results':
@@ -263,6 +254,10 @@ const App = {
                 main.innerHTML = Screens.renderResearcher();
                 break;
 
+            case 'methodology':
+                main.innerHTML = Screens.renderMethodology();
+                break;
+
             default:
                 window.location.hash = '#/';
                 break;
@@ -280,106 +275,32 @@ const App = {
                 link.classList.remove('active');
             }
         });
-
-        document.querySelectorAll('.bottom-nav-item').forEach(link => {
-            const r = link.getAttribute('data-route');
-            if (r === route) {
-                link.classList.add('active');
-            } else {
-                link.classList.remove('active');
-            }
-        });
     },
 
     /* --- Event Bindings --- */
 
-    bindOnboardingEvents() {
-        const nextBtn = document.getElementById('btn-onboard-next');
-        const backBtn = document.getElementById('btn-onboard-back');
-        const dots = document.querySelectorAll('.step-dot');
-        const cards = document.querySelectorAll('.pillar-card');
-
-        if (nextBtn) {
-            nextBtn.onclick = (e) => {
-                e.preventDefault();
-                if (Screens.onboardingStep < 3) {
-                    Screens.onboardingStep++;
-                    const main = document.getElementById('main');
-                    if (main) {
-                        main.innerHTML = Screens.renderOnboarding();
-                        this.bindOnboardingEvents();
-                    }
-                } else {
-                    Screens.onboardingStep = 1;
-                    window.location.hash = '#/consent';
-                }
-            };
-        }
-
-        if (backBtn) {
-            backBtn.onclick = (e) => {
-                e.preventDefault();
-                if (Screens.onboardingStep > 1) {
-                    Screens.onboardingStep--;
-                    const main = document.getElementById('main');
-                    if (main) {
-                        main.innerHTML = Screens.renderOnboarding();
-                        this.bindOnboardingEvents();
-                    }
-                } else {
-                    Screens.onboardingStep = 1;
-                    window.location.hash = '#/';
-                }
-            };
-        }
-
-        cards.forEach(card => {
-            card.onclick = () => {
-                const step = parseInt(card.dataset.step, 10);
-                if (step && step >= 1 && step <= 3) {
-                    Screens.onboardingStep = step;
-                    const main = document.getElementById('main');
-                    if (main) {
-                        main.innerHTML = Screens.renderOnboarding();
-                        this.bindOnboardingEvents();
-                    }
-                }
-            };
-        });
-
-        dots.forEach((dot, idx) => {
-            dot.onclick = () => {
-                Screens.onboardingStep = idx + 1;
-                const main = document.getElementById('main');
-                if (main) {
-                    main.innerHTML = Screens.renderOnboarding();
-                    this.bindOnboardingEvents();
-                }
-            };
-        });
-    },
-
     bindConsentEvents() {
-        const agreeCheckbox = document.getElementById('consent-agree');
+        const checkboxes = [
+            document.getElementById('consent-1'),
+            document.getElementById('consent-2'),
+            document.getElementById('consent-3'),
+            document.getElementById('consent-4')
+        ];
         const agreeBtn = document.getElementById('btn-consent-agree');
-        const declineBtn = document.getElementById('btn-consent-decline');
 
-        if (agreeCheckbox && agreeBtn) {
-            agreeCheckbox.onchange = () => {
-                agreeBtn.disabled = !agreeCheckbox.checked;
-            };
-        }
+        const checkAll = () => {
+            const allChecked = checkboxes.every(cb => cb && cb.checked);
+            if (agreeBtn) agreeBtn.disabled = !allChecked;
+        };
+
+        checkboxes.forEach(cb => {
+            if (cb) cb.onchange = checkAll;
+        });
 
         if (agreeBtn) {
             agreeBtn.onclick = () => {
                 AppState.setConsented(true);
                 window.location.hash = '#/profile';
-            };
-        }
-
-        if (declineBtn) {
-            declineBtn.onclick = () => {
-                window.location.hash = '#/';
             };
         }
     },
@@ -391,7 +312,6 @@ const App = {
                 e.preventDefault();
                 const formData = new FormData(form);
                 const p = {
-                    name: formData.get('name')?.trim() || 'Student',
                     age_group: formData.get('age_group'),
                     gender: formData.get('gender'),
                     year: formData.get('year'),
@@ -412,68 +332,43 @@ const App = {
         const prevBtn = document.getElementById('btn-pss-prev');
 
         options.forEach(card => {
-            card.onclick = (e) => {
-                if (this._pssLock) return;
-
+            card.onclick = () => {
                 options.forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
-
-                const radio = card.querySelector('input[type="radio"]');
-                if (radio) radio.checked = true;
 
                 const val = parseInt(card.dataset.val, 10);
                 AppState.setAssessmentField(`pss_q${qIndex}`, val);
 
-                if (nextBtn) {
-                    nextBtn.disabled = false;
-                }
+                if (nextBtn) nextBtn.disabled = false;
 
-                // Smooth auto-advance to next question upon selection
-                clearTimeout(this._pssAutoAdvanceTimer);
-                this._pssAutoAdvanceTimer = setTimeout(() => {
+                // Smooth auto-advance after 180ms
+                setTimeout(() => {
                     this.advancePSS();
-                }, 260);
+                }, 190);
             };
         });
 
         if (nextBtn) {
-            nextBtn.onclick = (e) => {
-                e.preventDefault();
-                clearTimeout(this._pssAutoAdvanceTimer);
-                this.advancePSS();
-            };
+            nextBtn.onclick = () => this.advancePSS();
         }
 
         if (prevBtn) {
-            prevBtn.onclick = (e) => {
-                e.preventDefault();
-                clearTimeout(this._pssAutoAdvanceTimer);
-                if (this._pssLock) return;
-                this._pssLock = true;
+            prevBtn.onclick = () => {
                 if (Screens.pssCurrentQuestion > 1) {
                     Screens.pssCurrentQuestion--;
                     this.handleRoute();
                 }
-                setTimeout(() => { this._pssLock = false; }, 260);
             };
         }
     },
 
     advancePSS() {
-        if (this._pssLock) return;
-        this._pssLock = true;
-        clearTimeout(this._pssAutoAdvanceTimer);
-
         if (Screens.pssCurrentQuestion < 10) {
             Screens.pssCurrentQuestion++;
             this.handleRoute();
         } else {
             window.location.hash = '#/lifestyle';
         }
-
-        setTimeout(() => {
-            this._pssLock = false;
-        }, 260);
     },
 
     bindLifestyleEvents() {
@@ -542,15 +437,7 @@ const App = {
         document.querySelectorAll('.btn-start-exp').forEach(btn => {
             btn.onclick = () => {
                 const expId = btn.dataset.id;
-                const latest = AppState.getLatestAssessment();
-                let baselineVal = null;
-                if (latest && latest.responses) {
-                    if (expId === 'sleep') baselineVal = latest.responses.sleep_hours;
-                    else if (expId === 'screen') baselineVal = latest.responses.screen_time;
-                    else if (expId === 'study') baselineVal = latest.responses.study_hours;
-                    else if (expId === 'activity') baselineVal = latest.responses.physical_activity;
-                }
-                AppState.startExperiment(expId, baselineVal);
+                AppState.startExperiment(expId);
                 this.handleRoute();
             };
         });
@@ -559,13 +446,8 @@ const App = {
         if (logForm) {
             logForm.onsubmit = (e) => {
                 e.preventDefault();
-                const valInput = document.getElementById('exp-daily-val');
-                const val = parseFloat(valInput?.value);
-                if (isNaN(val) || val < 0 || val > 24) {
-                    alert('Please enter a valid non-negative number between 0 and 24.');
-                    return;
-                }
-                AppState.logExperimentDay({ value: val });
+                const val = document.getElementById('exp-daily-val').value;
+                AppState.logExperimentDay({ recordedValue: val });
                 this.handleRoute();
             };
         }
@@ -576,23 +458,11 @@ const App = {
         if (form) {
             form.onsubmit = (e) => {
                 e.preventDefault();
-                const sleep = parseFloat(document.getElementById('h-sleep')?.value);
-                const screen = parseFloat(document.getElementById('h-screen')?.value);
-                const study = parseFloat(document.getElementById('h-study')?.value);
-                const exercise = parseFloat(document.getElementById('h-exercise')?.value);
-                const stressRating = document.getElementById('h-stress-rating')?.value;
-
-                if (isNaN(sleep) || sleep < 0 || isNaN(screen) || screen < 0 || isNaN(study) || study < 0 || isNaN(exercise) || exercise < 0) {
-                    alert('Values cannot be negative. Please enter valid non-negative numbers.');
-                    return;
-                }
-
                 const entry = {
-                    sleep_hours: sleep,
-                    screen_hours: screen,
-                    study_hours: study,
-                    exercise_minutes: exercise,
-                    stress_rating: stressRating ? parseInt(stressRating, 10) : null
+                    sleep_hours: parseFloat(document.getElementById('h-sleep').value) || 0,
+                    screen_hours: parseFloat(document.getElementById('h-screen').value) || 0,
+                    study_hours: parseFloat(document.getElementById('h-study').value) || 0,
+                    exercise_minutes: parseInt(document.getElementById('h-exercise').value, 10) || 0
                 };
                 AppState.logHabit(entry);
                 this.handleRoute();
