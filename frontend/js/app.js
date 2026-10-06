@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    PsychHealth — Core Application Controller & Router
    Mobile-First SPA with Responsive Sidebar Drawer & Touch Handlers
    ============================================================ */
@@ -280,6 +280,7 @@ const App = {
     /* --- Event Bindings --- */
 
     bindConsentEvents() {
+        const agreeCheckbox = document.getElementById('consent-agree');
         const checkboxes = [
             document.getElementById('consent-1'),
             document.getElementById('consent-2'),
@@ -288,14 +289,19 @@ const App = {
         ];
         const agreeBtn = document.getElementById('btn-consent-agree');
 
-        const checkAll = () => {
-            const allChecked = checkboxes.every(cb => cb && cb.checked);
-            if (agreeBtn) agreeBtn.disabled = !allChecked;
-        };
-
-        checkboxes.forEach(cb => {
-            if (cb) cb.onchange = checkAll;
-        });
+        if (agreeCheckbox && agreeBtn) {
+            agreeCheckbox.onchange = () => {
+                agreeBtn.disabled = !agreeCheckbox.checked;
+            };
+        } else if (agreeBtn && checkboxes.some(cb => cb)) {
+            const checkAll = () => {
+                const allChecked = checkboxes.every(cb => cb && cb.checked);
+                agreeBtn.disabled = !allChecked;
+            };
+            checkboxes.forEach(cb => {
+                if (cb) cb.onchange = checkAll;
+            });
+        }
 
         if (agreeBtn) {
             agreeBtn.onclick = () => {
@@ -564,7 +570,9 @@ const App = {
     }
 };
 
-// Start application on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
+// Start application on DOM ready or immediately if already loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => App.init());
+} else {
     App.init();
-});
+}

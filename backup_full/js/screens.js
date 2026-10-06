@@ -315,12 +315,6 @@ const Screens = {
 
                 <form id="form-profile-setup" class="card">
                     <div class="form-group mb-md">
-                        <label class="form-label mb-xs block" for="prof-name">Preferred Name / Alias <span style="color: var(--red);">*</span></label>
-                        <input type="text" id="prof-name" name="name" class="form-control" placeholder="e.g. Niraj or Raj" value="${p.name || ''}" required autocomplete="given-name" minlength="2">
-                        <span class="text-xs text-tertiary">Used for personalized greeting and dashboard analytics</span>
-                    </div>
-
-                    <div class="form-group mb-md">
                         <label class="form-label mb-xs block" for="prof-course">Course / Stream</label>
                         <select id="prof-course" name="course" class="form-control" required>
                             <option value="">Select course...</option>
@@ -389,256 +383,131 @@ const Screens = {
     },
 
     /* ------------------------------------------------------------
-       SCREEN 5 — Home Dashboard (Redesigned per Inspiration Screenshot)
+       SCREEN 5 — Home Dashboard
        ------------------------------------------------------------ */
     renderDashboard() {
         const latest = AppState.getLatestAssessment();
         const p = AppState.getProfile();
         const count = AppState.getAssessments().length;
-        const activeExp = AppState.getActiveExperiment();
-        const expData = activeExp ? DATA.experiments.find(e => e.id === activeExp.experimentId) : null;
-
-        // Dynamic time-based greeting
-        const hour = new Date().getHours();
-        const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-        const studentName = (p.name && p.name.trim()) ? p.name.trim() : 'Student';
-        const participantId = `PH-${String(Math.max(1, count)).padStart(3, '0')}`;
 
         if (!latest) {
-            // First time student state before taking assessment
+            // First time student state
             return `
                 <div class="dashboard-wrap animate-fade-in">
-                    <div class="status-pill">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-                        <span>Research Participant • ${participantId}</span>
-                    </div>
-
-                    <div class="greeting-hero">
-                        <h1>${greeting}, ${studentName} 👋</h1>
-                        <p>Let's check in on your wellbeing and academic balance.</p>
-                    </div>
-
-                    <!-- Research Journey Step Banner -->
-                    <div class="journey-banner">
-                        <div class="journey-top">
-                            <span class="journey-label">RESEARCH JOURNEY</span>
-                            <span class="journey-step">Step 1: Baseline Assessment</span>
-                        </div>
-                        <div class="journey-flow">
-                            <span class="step-active">1. ASSESS</span>
-                            <span class="arrow">→</span>
-                            <span class="step-pending">2. ANALYSE</span>
-                            <span class="arrow">→</span>
-                            <span class="step-pending">3. IMPROVE</span>
-                            <span class="arrow">→</span>
-                            <span class="step-pending">4. REASSESS</span>
+                    <div class="dash-header">
+                        <div>
+                            <h1 class="text-2xl font-bold">Student Wellness Dashboard</h1>
+                            <p class="text-sm text-secondary">Track perceived stress, lifestyle covariance, and academic resilience.</p>
                         </div>
                     </div>
 
-                    <!-- 2x2 Metric Tiles -->
-                    <div class="metric-tiles-grid">
-                        <a href="#/pss" class="metric-tile">
-                            <div class="metric-tile-header">
-                                <div class="tile-icon-wrap purple">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a9 9 0 0 0-9 9c0 4.1 2.8 7.6 6.7 8.6L12 22l2.3-2.4C18.2 18.6 21 15.1 21 11a9 9 0 0 0-9-9z"/><path d="M9 10a3 3 0 1 1 6 0c0 1.7-1.3 2.5-2 3.2-.4.4-.8.8-1 1.8"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>
-                                </div>
-                                <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                            </div>
-                            <div>
-                                <div class="tile-label">WELLBEING</div>
-                                <div class="tile-value">Ready to Assess</div>
-                                <div class="tile-sub text-accent">10 Psychometric Items</div>
-                            </div>
-                        </a>
-
-                        <a href="#/pss" class="metric-tile">
-                            <div class="metric-tile-header">
-                                <div class="tile-icon-wrap rose">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                                </div>
-                                <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                            </div>
-                            <div>
-                                <div class="tile-label">STRESS LEVEL</div>
-                                <div class="tile-value">Pending</div>
-                                <div class="tile-sub text-amber">Awaiting PSS Input</div>
-                            </div>
-                        </a>
-
-                        <a href="#/profile" class="metric-tile">
-                            <div class="metric-tile-header">
-                                <div class="tile-icon-wrap blue">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                                </div>
-                                <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                            </div>
-                            <div>
-                                <div class="tile-label">ACADEMICS</div>
-                                <div class="tile-value">${p.academic_performance ? `${p.academic_performance} CGPA` : 'Recorded'}</div>
-                                <div class="tile-sub text-green">${p.course || 'Profile Ready'}</div>
-                            </div>
-                        </a>
-
-                        <a href="#/plan" class="metric-tile">
-                            <div class="metric-tile-header">
-                                <div class="tile-icon-wrap emerald">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                </div>
-                                <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                            </div>
-                            <div>
-                                <div class="tile-label">TODAY'S ACTIVITY</div>
-                                <div class="tile-value">7-Day Protocols</div>
-                                <div class="tile-sub text-accent">Sleep &amp; Focus Tracks</div>
-                            </div>
-                        </a>
+                    <div class="card p-xl mb-lg text-center">
+                        <span class="badge badge-accent mb-sm">No Active Assessment</span>
+                        <h2 class="text-xl font-bold mb-xs">Welcome to PsychHealth</h2>
+                        <p class="text-secondary max-w-md mx-auto mb-md text-sm">
+                            You have not completed an assessment yet. Complete the standardized 10-question PSS-10 questionnaire along with your lifestyle variables to generate personalized recommendations.
+                        </p>
+                        <a href="#/onboarding" class="btn btn-primary btn-lg">Start First Assessment →</a>
                     </div>
 
-                    <!-- Motivational Quote Card -->
-                    <div class="quote-card">
-                        <div class="quote-content">
-                            <div class="quote-text">“ A healthier mind leads to a brighter future. ”</div>
-                            <div class="quote-author">— PsychHealth AI Research Platform</div>
+                    <div class="kpi-grid">
+                        <div class="card">
+                            <h3 class="font-semibold text-sm mb-xs">Standardized PSS-10</h3>
+                            <p class="text-xs text-secondary">Measures unpredictability, overload, and confidence under the Cohen scale.</p>
                         </div>
-                        <div class="quote-badge">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-7l-4-4"/><path d="M12 15l4-4"/><path d="M12 2a5 5 0 0 1 5 5c0 4-5 8-5 8s-5-4-5-8a5 5 0 0 1 5-5z"/></svg>
+                        <div class="card">
+                            <h3 class="font-semibold text-sm mb-xs">Actionable Guidance</h3>
+                            <p class="text-xs text-secondary">Deterministic rule-based recommendations for sleep, screen, and study hygiene.</p>
                         </div>
-                    </div>
-
-                    <!-- Primary Action Buttons -->
-                    <div class="dash-action-group">
-                        <a href="#/pss" class="btn-cta-primary">
-                            <span>Start 10-Question Assessment</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </a>
-                        <a href="#/plan" class="btn-cta-secondary">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                            <span>Explore 7-Day Experiment Protocols</span>
-                        </a>
+                        <div class="card">
+                            <h3 class="font-semibold text-sm mb-xs">What-If Simulation</h3>
+                            <p class="text-xs text-secondary">Test how adjusting your sleep duration or screen time alters stress patterns.</p>
+                        </div>
                     </div>
                 </div>
             `;
         }
 
         // Active student dashboard with real saved data
-        const levelBadgeClass = latest.pss_level === 'Low' ? 'text-green' : latest.pss_level === 'Moderate' ? 'text-amber' : 'text-red';
-        const levelBgClass = latest.pss_level === 'Low' ? 'badge-success' : latest.pss_level === 'Moderate' ? 'badge-warning' : 'badge-danger';
+        const levelBadgeClass = latest.pss_level === 'Low' ? 'badge-success' : latest.pss_level === 'Moderate' ? 'badge-warning' : 'badge-danger';
         const pssPct = Math.round((latest.pss_score / 40) * 100);
 
         return `
             <div class="dashboard-wrap animate-fade-in">
-                <!-- Top Status Pill -->
-                <div class="status-pill">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
-                    <span>Research Participant • ${participantId}</span>
-                </div>
-
-                <!-- Dynamic Real-Time Greeting -->
-                <div class="greeting-hero">
-                    <h1>${greeting}, ${studentName} 👋</h1>
-                    <p>Let's check in on your wellbeing and academic balance.</p>
-                </div>
-
-                <!-- Research Journey Step Banner -->
-                <div class="journey-banner">
-                    <div class="journey-top">
-                        <span class="journey-label">RESEARCH JOURNEY</span>
-                        <span class="journey-step">${activeExp ? 'Step 3: Intervention Protocol' : 'Step 2: Analysis & Guidance'}</span>
+                <div class="dash-header">
+                    <div>
+                        <h1 class="text-2xl font-bold">Student Wellness Overview</h1>
+                        <p class="text-sm text-secondary">
+                            ${p.course ? `${p.course} · ${p.year || 'Student'}` : 'Participant Overview'} · Last assessed: ${new Date(latest.date).toLocaleDateString()}
+                        </p>
                     </div>
-                    <div class="journey-flow">
-                        <span class="step-done">1. ASSESS</span>
-                        <span class="arrow">→</span>
-                        <span class="step-done">2. ANALYSE</span>
-                        <span class="arrow">→</span>
-                        <span class="${activeExp ? 'step-active' : 'step-done'}">3. IMPROVE</span>
-                        <span class="arrow">→</span>
-                        <span class="${count > 1 ? 'step-done' : 'step-pending'}">4. REASSESS</span>
+                    <div class="flex gap-xs flex-wrap">
+                        <a href="#/pss" class="btn btn-primary btn-sm">Retake Assessment</a>
+                        <a href="#/simulator" class="btn btn-secondary btn-sm">What-If Simulator</a>
                     </div>
                 </div>
 
-                <!-- 2x2 Interactive Metric Tiles Grid -->
-                <div class="metric-tiles-grid">
-                    <a href="#/results" class="metric-tile">
-                        <div class="metric-tile-header">
-                            <div class="tile-icon-wrap purple">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a9 9 0 0 0-9 9c0 4.1 2.8 7.6 6.7 8.6L12 22l2.3-2.4C18.2 18.6 21 15.1 21 11a9 9 0 0 0-9-9z"/><path d="M9 10a3 3 0 1 1 6 0c0 1.7-1.3 2.5-2 3.2-.4.4-.8.8-1 1.8"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>
-                            </div>
-                            <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                        </div>
+                <!-- Responsive 1-3 Column KPI Grid -->
+                <div class="kpi-grid">
+                    <!-- Hero KPI Card: PSS-10 Primary Score -->
+                    <div class="kpi-card hero-kpi">
                         <div>
-                            <div class="tile-label">WELLBEING</div>
-                            <div class="tile-value">Baseline Active</div>
-                            <div class="tile-sub text-accent">10 Psychometric Items</div>
-                        </div>
-                    </a>
-
-                    <a href="#/results" class="metric-tile">
-                        <div class="metric-tile-header">
-                            <div class="tile-icon-wrap rose">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            <div class="flex justify-between items-center mb-xs">
+                                <span class="kpi-label">Perceived Stress (PSS-10)</span>
+                                <span class="badge ${levelBadgeClass}">${latest.pss_level} Stress</span>
                             </div>
-                            <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                            <div class="kpi-value">${latest.pss_score} <span class="text-sm font-normal text-tertiary">/ 40</span></div>
                         </div>
-                        <div>
-                            <div class="tile-label">STRESS LEVEL</div>
-                            <div class="tile-value">${latest.pss_score}/40 PSS</div>
-                            <div class="tile-sub ${levelBadgeClass}">${latest.pss_level} Stress</div>
-                        </div>
-                    </a>
-
-                    <a href="#/simulator" class="metric-tile">
-                        <div class="metric-tile-header">
-                            <div class="tile-icon-wrap blue">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                        <div class="mt-xs">
+                            <div class="progress-bar mb-xs">
+                                <div class="progress-bar-fill" style="width: ${pssPct}%;"></div>
                             </div>
-                            <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+                            <div class="kpi-sub">Standard Cohen Normative Index</div>
                         </div>
-                        <div>
-                            <div class="tile-label">ACADEMICS</div>
-                            <div class="tile-value">${p.academic_performance ? `${p.academic_performance} CGPA` : 'Recorded'}</div>
-                            <div class="tile-sub text-green">${latest.responses.academic_pressure ? `${latest.responses.academic_pressure} Pressure` : 'Workload Track'}</div>
-                        </div>
-                    </a>
-
-                    <a href="#/plan" class="metric-tile">
-                        <div class="metric-tile-header">
-                            <div class="tile-icon-wrap emerald">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            </div>
-                            <svg class="tile-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                        </div>
-                        <div>
-                            <div class="tile-label">TODAY'S ACTIVITY</div>
-                            <div class="tile-value">${activeExp ? `Day ${activeExp.days.length + 1}: ${expData ? expData.title.split(' ')[0] : 'Plan'}` : '7-Day Protocol'}</div>
-                            <div class="tile-sub text-accent">${activeExp ? `${activeExp.days.length}/7 Logged • Ready` : 'Ready • Start Protocol'}</div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Motivational Banner Card -->
-                <div class="quote-card">
-                    <div class="quote-content">
-                        <div class="quote-text">“ A healthier mind leads to a brighter future. ”</div>
-                        <div class="quote-author">— PsychHealth AI Research Platform</div>
                     </div>
-                    <div class="quote-badge">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-7l-4-4"/><path d="M12 15l4-4"/><path d="M12 2a5 5 0 0 1 5 5c0 4-5 8-5 8s-5-4-5-8a5 5 0 0 1 5-5z"/></svg>
+
+                    <div class="kpi-card">
+                        <div>
+                            <span class="kpi-label">Average Sleep</span>
+                            <div class="kpi-value text-base mt-xs">${latest.responses.sleep_hours || 'Not recorded'}</div>
+                        </div>
+                        <div class="kpi-sub">${latest.responses.sleep_quality ? `Day fatigue: ${latest.responses.sleep_quality}` : 'Self-reported'}</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div>
+                            <span class="kpi-label">Screen Time (Non-Acad)</span>
+                            <div class="kpi-value text-base mt-xs">${latest.responses.screen_time || 'Not recorded'}</div>
+                        </div>
+                        <div class="kpi-sub">${latest.responses.screen_interference ? `Interference: ${latest.responses.screen_interference}` : 'Recreational'}</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div>
+                            <span class="kpi-label">Academic Pressure</span>
+                            <div class="kpi-value text-base mt-xs">${latest.responses.academic_pressure || 'Not recorded'}</div>
+                        </div>
+                        <div class="kpi-sub">${latest.responses.academic_stress_source ? `Source: ${latest.responses.academic_stress_source}` : 'Coursework'}</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div>
+                            <span class="kpi-label">Physical Activity</span>
+                            <div class="kpi-value text-base mt-xs">${latest.responses.physical_activity || 'Not recorded'}</div>
+                        </div>
+                        <div class="kpi-sub">30+ min exercise / week</div>
+                    </div>
+
+                    <div class="kpi-card">
+                        <div>
+                            <span class="kpi-label">Assessment History</span>
+                            <div class="kpi-value mt-xs">${count} <span class="text-sm font-normal text-tertiary">sessions</span></div>
+                        </div>
+                        <div class="kpi-sub"><a href="#/progress" class="text-accent font-medium">View longitudinal trend →</a></div>
                     </div>
                 </div>
 
-                <!-- Main Action Buttons -->
-                <div class="dash-action-group">
-                    <a href="${activeExp ? '#/plan' : '#/tracking'}" class="btn-cta-primary">
-                        <span>${activeExp ? `Continue Day ${activeExp.days.length + 1} Activity` : "Log Today's Wellness Habits"}</span>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </a>
-                    <a href="#/progress" class="btn-cta-secondary">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                        <span>View My Progress &amp; Analytics</span>
-                    </a>
-                </div>
-
-                <!-- Key Factors & Guidance Quick Summary -->
+                <!-- 2-Column Responsive Section: Factors & Priority Guidance -->
                 <div class="dashboard-columns">
                     <div class="card">
                         <div class="card-header">
@@ -647,7 +516,7 @@ const Screens = {
                         </div>
                         ${(latest.factors && latest.factors.length > 0) ? `
                             <div class="flex flex-col gap-xs">
-                                ${latest.factors.slice(0, 3).map(f => `
+                                ${latest.factors.slice(0, 4).map(f => `
                                     <div class="flex items-center justify-between p-xs border-b">
                                         <span class="text-sm text-primary">${f.title}</span>
                                         <span class="badge ${f.impact === 'High' ? 'badge-danger' : 'badge-warning'}">${f.impact}</span>
@@ -673,6 +542,18 @@ const Screens = {
                         ` : `
                             <p class="text-xs text-secondary">Balanced lifestyle patterns observed.</p>
                         `}
+                    </div>
+                </div>
+
+                <!-- 7-Day Habit Track Banner -->
+                <div class="card flex justify-between items-center flex-wrap gap-md p-md bg-subtle">
+                    <div>
+                        <div class="font-semibold text-sm">7-Day Habit Experiments</div>
+                        <div class="text-xs text-secondary">Engage in structured micro-interventions to improve sleep consistency or reduce screen interference.</div>
+                    </div>
+                    <div class="flex gap-xs flex-wrap">
+                        <a href="#/plan" class="btn btn-primary btn-sm">Open 7-Day Plan</a>
+                        <a href="#/tracking" class="btn btn-secondary btn-sm">Daily Habit Log</a>
                     </div>
                 </div>
             </div>
@@ -1065,7 +946,6 @@ const Screens = {
 
         const levelBadgeClass = latest.pss_level === 'Low' ? 'badge-success' : latest.pss_level === 'Moderate' ? 'badge-warning' : 'badge-danger';
         const pssPct = Math.round((latest.pss_score / 40) * 100);
-        const prev = AppState.getPreviousAssessment();
 
         return `
             <div class="results-wrap animate-fade-in">
@@ -1076,53 +956,6 @@ const Screens = {
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Home Dashboard</a>
                 </div>
-
-                ${prev ? `
-                    <!-- Longitudinal Re-Assessment Comparison Card -->
-                    <div class="comparison-card">
-                        <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
-                            <span class="badge badge-accent">Longitudinal Comparison</span>
-                            <span class="text-xs text-tertiary">Previous: ${new Date(prev.date).toLocaleDateString()}</span>
-                        </div>
-                        <h3 class="font-bold text-base mb-xs">Your Progress Since Last Assessment</h3>
-                        
-                        <div class="comparison-grid">
-                            <div class="comparison-col">
-                                <div class="comparison-label">Previous Score</div>
-                                <div class="comparison-val">${prev.pss_score} <span class="text-xs font-normal text-tertiary">/ 40</span></div>
-                                <div class="text-xs font-semibold ${prev.pss_level === 'Low' ? 'text-green' : prev.pss_level === 'Moderate' ? 'text-amber' : 'text-red'} mt-xs">${prev.pss_level} Stress</div>
-                            </div>
-                            <div class="comparison-col">
-                                <div class="comparison-label">Current Score</div>
-                                <div class="comparison-val">${latest.pss_score} <span class="text-xs font-normal text-tertiary">/ 40</span></div>
-                                <div class="text-xs font-semibold ${latest.pss_level === 'Low' ? 'text-green' : latest.pss_level === 'Moderate' ? 'text-amber' : 'text-red'} mt-xs">${latest.pss_level} Stress</div>
-                            </div>
-                        </div>
-
-                        <div class="text-center mt-sm">
-                            ${latest.pss_score < prev.pss_score ? `
-                                <div class="delta-badge improved">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                                    <span>↓ ${prev.pss_score - latest.pss_score} points lower (Perceived Stress Improved! 🎉)</span>
-                                </div>
-                            ` : latest.pss_score > prev.pss_score ? `
-                                <div class="delta-badge increased">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-                                    <span>↑ ${latest.pss_score - prev.pss_score} points higher (Higher overload reported)</span>
-                                </div>
-                            ` : `
-                                <div class="delta-badge improved">
-                                    <span>Score unchanged (Stable baseline)</span>
-                                </div>
-                            `}
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-xs mt-sm pt-xs border-t text-xs text-secondary">
-                            <div>Sleep: <strong>${prev.responses?.sleep_hours || 'N/A'}</strong> → <strong>${latest.responses?.sleep_hours || 'N/A'}</strong></div>
-                            <div>Screen: <strong>${prev.responses?.screen_time || 'N/A'}</strong> → <strong>${latest.responses?.screen_time || 'N/A'}</strong></div>
-                        </div>
-                    </div>
-                ` : ''}
 
                 <div class="card mb-md text-center p-lg">
                     <div class="text-xs text-tertiary mb-xs">Standardized Cohen PSS-10 Score</div>
@@ -1269,154 +1102,84 @@ const Screens = {
     },
 
     /* ------------------------------------------------------------
-       SCREEN 13 — 7-Day Wellness Experiment (Recommendation → Structured Intervention → Completion → Observation)
+       SCREEN 13 — 7-Day Wellness Experiment
        ------------------------------------------------------------ */
     renderPlan() {
         const activeExp = AppState.getActiveExperiment();
-        const completedExps = AppState.getCompletedExperiments();
         const experiments = DATA.experiments;
-        const currentExp = activeExp ? experiments.find(e => e.id === activeExp.experimentId) : null;
 
         return `
             <div class="assessment-wrap animate-fade-in">
                 <div class="dash-header mb-md">
                     <div>
                         <h1 class="text-2xl font-bold">7-Day Habit Experiments</h1>
-                        <span class="text-xs text-tertiary">Recommendation → Structured 7-day protocol → Completion → Observation</span>
+                        <span class="text-xs text-tertiary">Structured micro-interventions to test empirical stress reduction</span>
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
                 </div>
 
-                ${completedExps.length > 0 ? `
-                    <!-- Completed Experiment Observation Summary -->
-                    <div class="card mb-md" style="border: 2px solid var(--green); background: linear-gradient(135deg, rgba(236, 253, 245, 0.6) 0%, rgba(255, 255, 255, 0.95) 100%);">
-                        <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
-                            <span class="badge badge-success">✓ 7-Day Protocol Completed</span>
-                            <span class="text-xs text-tertiary">${new Date(completedExps[completedExps.length - 1].completedDate).toLocaleDateString()}</span>
+                ${activeExp ? `
+                    <div class="card mb-lg" style="border-color: var(--accent);">
+                        <div class="flex justify-between items-center mb-xs">
+                            <span class="badge badge-accent">Active Experiment</span>
+                            <span class="text-xs font-semibold text-accent">Day ${activeExp.days.length + 1} of 7</span>
                         </div>
                         <h3 class="font-bold text-base mb-xs">
-                            ${experiments.find(e => e.id === completedExps[completedExps.length - 1].experimentId)?.title || 'Wellness Protocol'}
+                            ${experiments.find(e => e.id === activeExp.experimentId)?.title || 'Current Experiment'}
                         </h3>
-                        <p class="text-xs text-secondary mb-sm">
-                            Full 7-day daily protocol logged. Here is the empirical observation outcome:
+                        <p class="text-xs text-secondary mb-md">
+                            ${experiments.find(e => e.id === activeExp.experimentId)?.goal || 'Daily micro-intervention.'}
                         </p>
 
-                        <div class="grid grid-cols-2 gap-sm mb-sm text-center">
-                            <div class="p-xs bg-subtle rounded border">
-                                <span class="text-xs text-tertiary block">Before / Baseline</span>
-                                <span class="font-bold text-base text-primary">${completedExps[completedExps.length - 1].baselineValue || '5.5'} average</span>
-                            </div>
-                            <div class="p-xs bg-subtle rounded border" style="border-color: var(--green);">
-                                <span class="text-xs text-green font-semibold block">During 7-Day Protocol</span>
-                                <span class="font-bold text-base text-green">${completedExps[completedExps.length - 1].avgDuring} average</span>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-between items-center gap-xs flex-wrap">
-                            <span class="text-xs font-semibold text-green">Empirical shift logged to longitudinal database.</span>
-                            <a href="#/progress" class="btn btn-primary btn-sm">View Progress in Trends →</a>
-                        </div>
-                    </div>
-                ` : ''}
-
-                ${activeExp ? `
-                    <!-- Active 7-Day Intervention Protocol -->
-                    <div class="card mb-lg" style="border: 2px solid var(--accent); box-shadow: var(--shadow-md);">
-                        <div class="flex justify-between items-center mb-xs">
-                            <span class="badge badge-accent">Active Protocol</span>
-                            <span class="text-xs font-bold text-accent">Day ${activeExp.days.length + 1} of 7</span>
-                        </div>
-                        <h3 class="font-bold text-lg mb-xs">
-                            ${currentExp?.title || 'Current Protocol'}
-                        </h3>
-                        <p class="text-xs text-secondary mb-sm">
-                            ${currentExp?.goal || 'Follow this structured protocol daily for 7 days.'}
-                        </p>
-
-                        <!-- Daily Tasks Protocol Checklist -->
-                        <div class="p-sm bg-subtle rounded-md mb-md">
-                            <div class="text-xs font-bold uppercase tracking-wider text-secondary mb-xs">Daily Protocol Tasks:</div>
-                            <div class="flex flex-col gap-xs">
-                                ${(currentExp?.dailyTasks || [
-                                    'Consistent sleep schedule',
-                                    'Cut off recreational screen 30 min before bed',
-                                    'Record daily duration'
-                                ]).map(task => `
-                                    <div class="flex items-center gap-xs text-xs text-primary">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-green"><polyline points="20 6 9 17 4 12"/></svg>
-                                        <span>${task}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar & Day Status Indicators -->
-                        <div class="progress-bar mb-xs" style="height: 8px;">
+                        <div class="progress-bar mb-md">
                             <div class="progress-bar-fill" style="width: ${(activeExp.days.length / 7) * 100}%;"></div>
                         </div>
-                        <div class="text-right text-xs text-tertiary mb-sm">${activeExp.days.length} / 7 days completed</div>
 
                         <div class="mb-md">
+                            <div class="text-xs font-semibold mb-xs">Completed Days:</div>
                             <div class="flex gap-xs">
                                 ${[1, 2, 3, 4, 5, 6, 7].map(d => `
-                                    <div class="p-xs text-center border rounded flex-1 text-xs ${d <= activeExp.days.length ? 'bg-accent text-white font-bold' : d === activeExp.days.length + 1 ? 'border-accent text-accent font-bold bg-subtle' : 'text-tertiary'}">
-                                        D${d} ${d <= activeExp.days.length ? '✓' : ''}
+                                    <div class="p-xs text-center border rounded flex-1 text-xs ${d <= activeExp.days.length ? 'bg-accent text-white font-bold' : ''}">
+                                        D${d}
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
 
-                        <!-- Daily Log Input Form with Strict Non-Negative Validation -->
-                        <form id="form-log-exp-day" class="p-md bg-subtle rounded-md border">
-                            <div class="font-semibold text-xs mb-xs">Log Day ${activeExp.days.length + 1} Target:</div>
-                            <div class="flex items-center gap-sm flex-wrap">
-                                <label class="text-xs text-secondary flex-1 min-w-0" for="exp-daily-val">
-                                    ${currentExp?.trackLabel || 'Enter metric value'}:
-                                </label>
-                                <input type="number" id="exp-daily-val" 
-                                    step="${currentExp?.trackStep || '0.5'}" 
-                                    min="0" 
-                                    max="${currentExp?.trackMax || '24'}" 
-                                    class="form-control" 
-                                    style="width: 110px;" 
-                                    placeholder="e.g. 7.5" 
-                                    required>
-                                <button type="submit" class="btn btn-primary btn-sm">Record Day ${activeExp.days.length + 1} ✓</button>
-                            </div>
-                            <span class="text-xs text-tertiary block mt-xs">Strictly non-negative (0 to ${currentExp?.trackMax || 24}).</span>
+                        <form id="form-log-exp-day" class="p-sm bg-subtle rounded-md flex items-center justify-between gap-sm flex-wrap">
+                            <div class="text-xs font-medium">Log Today's Target:</div>
+                            <input type="number" id="exp-daily-val" step="0.5" class="form-control" style="width: 100px;" placeholder="e.g. 7.5" required>
+                            <button type="submit" class="btn btn-primary btn-sm">Record Day ${activeExp.days.length + 1}</button>
                         </form>
                     </div>
                 ` : ''}
 
-                <h3 class="font-semibold text-base mb-xs">Available Experiment Protocols</h3>
-                <p class="text-xs text-secondary mb-md">Select one recommendation-aligned protocol to focus on for 7 days:</p>
+                <h3 class="font-semibold text-sm mb-xs">Available Experiment Protocols</h3>
+                <p class="text-xs text-secondary mb-md">Select one habit track to focus on for the next 7 days:</p>
 
                 <div class="flex flex-col gap-sm mb-lg">
                     ${experiments.map(exp => `
                         <div class="card p-md flex items-center justify-between flex-wrap gap-sm">
                             <div class="max-w-md">
-                                <div class="font-semibold text-sm flex items-center gap-xs">
-                                    <span>${exp.icon || '🎯'}</span>
-                                    <span>${exp.title}</span>
-                                </div>
-                                <div class="text-xs text-secondary mt-xs">${exp.goal}</div>
+                                <div class="font-semibold text-sm">${exp.title}</div>
+                                <div class="text-xs text-secondary">${exp.goal}</div>
                             </div>
                             <button class="btn btn-secondary btn-sm btn-start-exp" data-id="${exp.id}" ${activeExp ? 'disabled' : ''}>
-                                ${activeExp && activeExp.experimentId === exp.id ? 'Active Track' : 'Start 7-Day Protocol'}
+                                ${activeExp && activeExp.experimentId === exp.id ? 'In Progress' : 'Start 7-Day Protocol'}
                             </button>
                         </div>
                     `).join('')}
                 </div>
 
                 <div class="card p-sm bg-subtle text-xs text-tertiary">
-                    <strong>Research Architecture Note:</strong> 7-Day Experiments are structured empirical interventions, not generic habit trackers. They measure within-subject variance before and during behavioural adjustment.
+                    These 7-day micro-interventions allow tracking individual baseline shifts before and after behavioural changes.
                 </div>
             </div>
         `;
     },
 
     /* ------------------------------------------------------------
-       SCREEN 14 — Daily Habit Log (Raw Daily Observational Data Collection)
+       SCREEN 14 — Habit Tracking
        ------------------------------------------------------------ */
     renderTracking() {
         const logs = AppState.getHabitLog();
@@ -1428,13 +1191,9 @@ const Screens = {
                 <div class="dash-header mb-md">
                     <div>
                         <h1 class="text-2xl font-bold">Daily Habit Log</h1>
-                        <span class="text-xs text-tertiary">Raw daily observational data collection system</span>
+                        <span class="text-xs text-tertiary">Empirical tracking of sleep, screen, study, and physical activity</span>
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
-                </div>
-
-                <div class="p-sm bg-subtle rounded-md mb-md border text-xs text-secondary">
-                    <strong>Conceptual Role:</strong> Daily Habit Log serves as the raw database of daily observations. These logs directly feed <strong>Progress Trends</strong> and the <strong>What-If Factor Simulator</strong>.
                 </div>
 
                 <div class="kpi-grid mb-md">
@@ -1450,62 +1209,44 @@ const Screens = {
                         <div class="kpi-label">7-Day Avg Screen</div>
                         <div class="kpi-value">${summary.avgScreen} <span class="text-xs font-normal text-tertiary">hrs</span></div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">7-Day Avg Study</div>
-                        <div class="kpi-value">${summary.avgStudy} <span class="text-xs font-normal text-tertiary">hrs</span></div>
-                    </div>
                 </div>
 
                 <form id="form-log-habit" class="card mb-md">
-                    <h3 class="font-semibold text-sm mb-sm">Record Today's Observation</h3>
+                    <h3 class="font-semibold text-sm mb-sm">Record Today's Entry</h3>
                     <div class="grid grid-cols-2 gap-sm mb-md">
                         <div>
                             <label class="text-xs font-medium block mb-xs">Sleep Last Night (hours)</label>
-                            <input type="number" id="h-sleep" step="0.5" min="0" max="24" class="form-control" placeholder="e.g. 7.0" required>
+                            <input type="number" id="h-sleep" step="0.5" min="0" max="14" class="form-control" placeholder="e.g. 7.0" required>
                         </div>
                         <div>
                             <label class="text-xs font-medium block mb-xs">Screen Time (non-acad, hrs)</label>
-                            <input type="number" id="h-screen" step="0.5" min="0" max="24" class="form-control" placeholder="e.g. 3.5" required>
+                            <input type="number" id="h-screen" step="0.5" min="0" max="16" class="form-control" placeholder="e.g. 3.5" required>
                         </div>
                         <div>
                             <label class="text-xs font-medium block mb-xs">Study Hours (outside class)</label>
-                            <input type="number" id="h-study" step="0.5" min="0" max="24" class="form-control" placeholder="e.g. 2.0" required>
+                            <input type="number" id="h-study" step="0.5" min="0" max="12" class="form-control" placeholder="e.g. 2.0" required>
                         </div>
                         <div>
-                            <label class="text-xs font-medium block mb-xs">Physical Activity (mins)</label>
-                            <input type="number" id="h-exercise" step="5" min="0" max="300" class="form-control" placeholder="e.g. 30" required>
+                            <label class="text-xs font-medium block mb-xs">Exercise / Workout (mins)</label>
+                            <input type="number" id="h-exercise" step="5" min="0" max="180" class="form-control" placeholder="e.g. 30" required>
                         </div>
                     </div>
-
-                    <div class="form-group mb-md">
-                        <label class="text-xs font-medium block mb-xs">Optional Daily Stress Rating (1 to 5)</label>
-                        <select id="h-stress-rating" class="form-control">
-                            <option value="">Select today's perceived stress (optional)...</option>
-                            <option value="1">1 — Very Low / Relaxed</option>
-                            <option value="2">2 — Low Stress</option>
-                            <option value="3">3 — Moderate / Manageable</option>
-                            <option value="4">4 — High Stress</option>
-                            <option value="5">5 — Very High / Overwhelmed</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-block">Save Today's Observation ✓</button>
+                    <button type="submit" class="btn btn-primary btn-block">Save Today's Entry ✓</button>
                 </form>
 
                 <div class="card">
-                    <h3 class="font-semibold text-sm mb-xs">Recent Daily Observations</h3>
+                    <h3 class="font-semibold text-sm mb-xs">Recent Entries</h3>
                     ${logs.length > 0 ? `
                         <div class="flex flex-col gap-xs mt-sm">
-                            ${logs.slice(-7).reverse().map(l => `
-                                <div class="flex items-center justify-between p-xs border-b text-xs flex-wrap gap-xs">
-                                    <span class="font-mono font-medium">${l.date}</span>
-                                    <span class="text-secondary">${l.sleep_hours}h sleep · ${l.screen_hours}h screen · ${l.study_hours}h study · ${l.exercise_minutes}m workout</span>
-                                    ${l.stress_rating ? `<span class="badge badge-accent">${l.stress_rating}/5 Stress</span>` : ''}
+                            ${logs.slice(-5).reverse().map(l => `
+                                <div class="flex items-center justify-between p-xs border-b text-xs">
+                                    <span class="font-medium">${l.date}</span>
+                                    <span class="text-secondary">${l.sleep_hours}h sleep · ${l.screen_hours}h screen · ${l.study_hours}h study · ${l.exercise_minutes}m exercise</span>
                                 </div>
                             `).join('')}
                         </div>
                     ` : `
-                        <p class="text-xs text-secondary mt-xs">No daily observations recorded yet. Submit your first entry above.</p>
+                        <p class="text-xs text-secondary mt-xs">No daily logs recorded yet. Submit your first entry above.</p>
                     `}
                 </div>
             </div>
@@ -1513,112 +1254,39 @@ const Screens = {
     },
 
     /* ------------------------------------------------------------
-       SCREEN 15 — Progress Trends (How Have I Changed? Longitudinal Evaluation)
+       SCREEN 15 — Progress & Reassessment
        ------------------------------------------------------------ */
     renderProgress() {
         const assessments = AppState.getAssessments();
-        const latest = AppState.getLatestAssessment();
-        const baseline = assessments.length > 0 ? assessments[0] : null;
-        const summary = Tracking.getWeeklySummary();
-        const completedExps = AppState.getCompletedExperiments();
-
-        const pssDiff = (latest && baseline && assessments.length > 1) 
-            ? latest.pss_score - baseline.pss_score 
-            : 0;
 
         return `
             <div class="assessment-wrap animate-fade-in">
                 <div class="dash-header mb-md">
                     <div>
-                        <h1 class="text-2xl font-bold">Progress Trends</h1>
-                        <span class="text-xs text-tertiary">How have I changed? Longitudinal evaluation across repeated assessments</span>
+                        <h1 class="text-2xl font-bold">Progress Tracking</h1>
+                        <span class="text-xs text-tertiary">Longitudinal stress evaluation across repeated assessments</span>
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
                 </div>
 
-                <!-- Longitudinal Change Summary Tiles -->
-                <div class="kpi-grid mb-md">
-                    <div class="kpi-card">
-                        <div class="kpi-label">Current PSS Score</div>
-                        <div class="kpi-value">${latest ? latest.pss_score : '--'} <span class="text-xs font-normal text-tertiary">/ 40</span></div>
-                        <div class="kpi-sub">
-                            ${assessments.length > 1 ? `
-                                <span class="${pssDiff <= 0 ? 'text-green' : 'text-red'} font-bold">
-                                    ${pssDiff <= 0 ? `↓ ${Math.abs(pssDiff)} pts (Improved)` : `↑ ${pssDiff} pts (Higher)`}
-                                </span>
-                            ` : 'Baseline benchmark'}
-                        </div>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-label">Avg Sleep Trend</div>
-                        <div class="kpi-value">${summary.avgSleep > 0 ? `${summary.avgSleep}h` : (latest?.responses.sleep_hours || '--')}</div>
-                        <div class="kpi-sub">Rolling 7-day average</div>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-label">Avg Screen Trend</div>
-                        <div class="kpi-value">${summary.avgScreen > 0 ? `${summary.avgScreen}h` : (latest?.responses.screen_time || '--')}</div>
-                        <div class="kpi-sub">Non-academic screen</div>
-                    </div>
-
-                    <div class="kpi-card">
-                        <div class="kpi-label">Total Assessments</div>
-                        <div class="kpi-value">${assessments.length} <span class="text-xs font-normal text-tertiary">sessions</span></div>
-                        <div class="kpi-sub">Longitudinal records</div>
-                    </div>
-                </div>
-
-                <!-- Sleek PSS-10 Stress Curve Chart -->
                 <div class="card mb-md">
-                    <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
-                        <h3 class="font-semibold text-sm">PSS-10 Longitudinal Stress Trend</h3>
-                        <div class="text-xs text-tertiary flex gap-sm">
-                            <span class="flex items-center gap-xs"><span style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;"></span> Low ≤13</span>
-                            <span class="flex items-center gap-xs"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> Mod 14–26</span>
-                            <span class="flex items-center gap-xs"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;"></span> High 27–40</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-secondary mb-md">Smooth Cohen score trajectory plotted across assessment dates:</p>
+                    <h3 class="font-semibold text-sm mb-xs">PSS-10 Longitudinal Trend</h3>
+                    <p class="text-xs text-secondary mb-md">Scores tracked across time intervals:</p>
                     
-                    <div style="height: 220px; position: relative; width: 100%;">
+                    <div style="height: 180px; position: relative;">
                         <canvas id="progress-curve-canvas"></canvas>
                     </div>
                 </div>
 
-                <!-- 7-Day Experiment Outcomes -->
-                ${completedExps.length > 0 ? `
-                    <div class="card mb-md">
-                        <h3 class="font-semibold text-sm mb-xs">Completed 7-Day Experiment Outcomes</h3>
-                        <p class="text-xs text-secondary mb-sm">Before vs During intervention observation comparison:</p>
-                        
-                        <div class="flex flex-col gap-xs">
-                            ${completedExps.map(exp => `
-                                <div class="p-sm bg-subtle rounded-md border flex items-center justify-between flex-wrap gap-xs">
-                                    <div>
-                                        <div class="font-semibold text-xs text-primary">${DATA.experiments.find(e => e.id === exp.experimentId)?.title || 'Experiment'}</div>
-                                        <div class="text-xs text-tertiary">Completed: ${new Date(exp.completedDate).toLocaleDateString()}</div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-xs text-secondary">Before: <strong>${exp.baselineValue || '5.5'}h</strong> → During: <strong>${exp.avgDuring}h</strong></span>
-                                        <span class="badge badge-success ml-xs">Completed</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-
-                <!-- Assessment History Timeline Table -->
                 <div class="card mb-md">
-                    <h3 class="font-semibold text-sm mb-xs">Assessment History Timeline</h3>
+                    <h3 class="font-semibold text-sm mb-xs">Assessment History</h3>
                     ${assessments.length > 0 ? `
                         <div class="flex flex-col gap-xs mt-sm">
                             ${assessments.map((a, idx) => `
                                 <div class="flex items-center justify-between p-sm border rounded-md">
                                     <div>
                                         <div class="font-semibold text-sm">Assessment #${idx + 1}</div>
-                                        <div class="text-xs text-tertiary">${new Date(a.date).toLocaleDateString()} · ${a.profile.course || 'Student'}</div>
+                                        <div class="text-xs text-tertiary">${new Date(a.date).toLocaleDateString()}</div>
                                     </div>
                                     <div class="text-right">
                                         <span class="text-base font-bold">${a.pss_score} / 40</span>
@@ -1634,9 +1302,9 @@ const Screens = {
                     `}
                 </div>
 
-                <div class="flex justify-between items-center gap-sm flex-wrap">
-                    <a href="#/pss" class="btn btn-primary">Retake PSS-10 Assessment →</a>
-                    <a href="#/simulator" class="btn btn-secondary">What-If Factor Simulator</a>
+                <div class="flex justify-between items-center gap-sm">
+                    <a href="#/pss" class="btn btn-primary">Retake PSS-10 →</a>
+                    <a href="#/simulator" class="btn btn-secondary">What-If Simulator</a>
                 </div>
             </div>
         `;
@@ -1717,7 +1385,7 @@ const Screens = {
     },
 
     /* ------------------------------------------------------------
-       RESEARCHER VIEW — Pilot Cohort (N=16 Dataset & ML Analysis)
+       RESEARCHER VIEW — Pilot Cohort (N=16 Dataset)
        ------------------------------------------------------------ */
     renderResearcher() {
         const cohort = DATA.cohortResponses;
@@ -1736,12 +1404,11 @@ const Screens = {
                     </p>
                 </div>
 
-                <!-- Cohort Overview KPIs -->
                 <div class="kpi-grid mb-md">
                     <div class="kpi-card">
                         <div class="kpi-label">Sample Size</div>
                         <div class="kpi-value">${cohort.length} <span class="text-xs font-normal text-tertiary">students</span></div>
-                        <div class="kpi-sub">Pilot cohort</div>
+                        <div class="kpi-sub">Pilot baseline</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Mean PSS Score</div>
@@ -1749,7 +1416,7 @@ const Screens = {
                         <div class="kpi-sub">Moderate cohort baseline</div>
                     </div>
                     <div class="kpi-card">
-                        <div class="kpi-label">Normative Distribution</div>
+                        <div class="kpi-label">Distribution</div>
                         <div class="kpi-value text-sm mt-xs">
                             <span class="text-green font-bold">${lowCount} Low</span> · 
                             <span class="text-amber font-bold">${modCount} Mod</span> · 
@@ -1759,140 +1426,9 @@ const Screens = {
                     </div>
                 </div>
 
-                <!-- Demographic & Covariance Distributions -->
-                <div class="dashboard-columns mb-md">
-                    <div class="card">
-                        <h3 class="font-semibold text-sm mb-xs">Cohort Distributions</h3>
-                        <div class="text-xs text-secondary mb-sm">Key demographic and lifestyle breakdowns across pilot:</div>
-                        <div class="flex flex-col gap-xs text-xs">
-                            <div class="flex justify-between border-b pb-xs">
-                                <span>Gender Balance:</span>
-                                <strong>50% Female · 50% Male</strong>
-                            </div>
-                            <div class="flex justify-between border-b pb-xs">
-                                <span>Average Sleep Duration:</span>
-                                <strong>6.2 hrs / night</strong>
-                            </div>
-                            <div class="flex justify-between border-b pb-xs">
-                                <span>Non-Academic Screen Time:</span>
-                                <strong>4.6 hrs / day</strong>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Academic Modal CGPA:</span>
-                                <strong>7.0 – 7.9 (37.5%)</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3 class="font-semibold text-sm mb-xs">Correlation Highlights (Covariance)</h3>
-                        <div class="text-xs text-secondary mb-sm">Bivariate Pearson correlation coefficients:</div>
-                        <div class="flex flex-col gap-xs text-xs">
-                            <div class="flex justify-between border-b pb-xs">
-                                <span>PSS vs Academic Pressure:</span>
-                                <strong class="text-red">r = +0.58 (Moderate/Strong)</strong>
-                            </div>
-                            <div class="flex justify-between border-b pb-xs">
-                                <span>PSS vs Sleep Duration:</span>
-                                <strong class="text-green">r = -0.46 (Inverse Correlation)</strong>
-                            </div>
-                            <div class="flex justify-between border-b pb-xs">
-                                <span>PSS vs Screen Interference:</span>
-                                <strong class="text-red">r = +0.52 (Positive Correlation)</strong>
-                            </div>
-                            <div class="flex justify-between">
-                                <span>Physical Activity vs PSS:</span>
-                                <strong class="text-green">r = -0.34 (Protective Factor)</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Researcher ML Pipeline Analysis Section -->
-                <div class="card mb-md">
-                    <div class="flex items-center justify-between mb-xs flex-wrap gap-xs">
-                        <h3 class="font-semibold text-base">Machine Learning Model Evaluation</h3>
-                        <span class="badge badge-accent">Research Pipeline Active</span>
-                    </div>
-                    <p class="text-xs text-secondary mb-md">
-                        Supervised classification benchmark for predicting academic performance risk from psychological &amp; lifestyle features.
-                    </p>
-
-                    <div class="grid grid-cols-2 gap-sm mb-md">
-                        <div class="p-sm bg-subtle rounded border">
-                            <span class="text-xs text-tertiary block">Primary Model</span>
-                            <span class="font-bold text-sm text-primary">Random Forest Classifier (n=100)</span>
-                            <div class="text-xs text-secondary mt-xs">5-Fold Stratified Cross-Validation</div>
-                        </div>
-                        <div class="p-sm bg-subtle rounded border">
-                            <span class="text-xs text-tertiary block">Model Accuracy</span>
-                            <span class="font-bold text-sm text-green">81.25%</span>
-                            <div class="text-xs text-secondary mt-xs">Baseline Pilot Fit</div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-xs mb-md text-center text-xs">
-                        <div class="p-xs bg-subtle rounded border">
-                            <span class="text-tertiary block">Precision</span>
-                            <strong class="text-sm">0.83</strong>
-                        </div>
-                        <div class="p-xs bg-subtle rounded border">
-                            <span class="text-tertiary block">Recall</span>
-                            <strong class="text-sm">0.81</strong>
-                        </div>
-                        <div class="p-xs bg-subtle rounded border">
-                            <span class="text-tertiary block">F1-Score</span>
-                            <strong class="text-sm">0.82</strong>
-                        </div>
-                    </div>
-
-                    <!-- Feature Importance Ranking -->
-                    <div class="mb-md">
-                        <div class="text-xs font-bold uppercase text-secondary mb-xs">Gini Feature Importance:</div>
-                        <div class="flex flex-col gap-xs text-xs">
-                            <div>
-                                <div class="flex justify-between mb-xs">
-                                    <span>Cohen PSS-10 Perceived Stress</span>
-                                    <strong>32%</strong>
-                                </div>
-                                <div class="progress-bar"><div class="progress-bar-fill" style="width: 32%;"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-xs">
-                                    <span>Average Sleep Duration</span>
-                                    <strong>24%</strong>
-                                </div>
-                                <div class="progress-bar"><div class="progress-bar-fill" style="width: 24%; background: var(--green);"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-xs">
-                                    <span>Study Hours Outside Class</span>
-                                    <strong>20%</strong>
-                                </div>
-                                <div class="progress-bar"><div class="progress-bar-fill" style="width: 20%; background: var(--sky);"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-xs">
-                                    <span>Screen Interference with Concentration</span>
-                                    <strong>14%</strong>
-                                </div>
-                                <div class="progress-bar"><div class="progress-bar-fill" style="width: 14%; background: var(--amber);"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-xs">
-                                    <span>Weekly Physical Activity</span>
-                                    <strong>10%</strong>
-                                </div>
-                                <div class="progress-bar"><div class="progress-bar-fill" style="width: 10%; background: var(--purple);"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Raw Dataset Table -->
                 <div class="text-xs text-tertiary mb-xs flex items-center justify-between">
-                    <span>Pilot Dataset Table (N=16 Responses)</span>
-                    <span class="text-accent">← Swipe horizontally to inspect variables →</span>
+                    <span>Survey Responses Table (N=16)</span>
+                    <span class="text-accent">← Swipe horizontally to view all variables →</span>
                 </div>
 
                 <div class="table-container mb-md">
