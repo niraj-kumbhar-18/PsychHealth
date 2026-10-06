@@ -7,51 +7,171 @@
 const AppState = {
     _state: {
         theme: 'light',
-        consented: false,
+        consented: true,
 
-        // Section 1: Student Profile (GEMINI.md §6)
+        // Section 1: Active Student Profile (matching Screenshots)
         profile: {
-            age_group: null,
-            year: null,
-            course: null,
-            gender: null,
-            academic_performance: null
+            id: 'PH-001',
+            name: 'Raj',
+            college: 'Prof. Ramkrishna More ACS College, Akurdi',
+            course: 'B.Sc. Computer Science',
+            year: 'Third Year',
+            gender: 'Male',
+            age_group: '18–20',
+            academic_performance: '9.0–10.0'
         },
 
-        // Current in-progress assessment (Sections 2–5)
+        // Current in-progress assessment responses
         currentAssessment: {
-            // PSS-10
-            pss_q1: null, pss_q2: null, pss_q3: null, pss_q4: null, pss_q5: null,
-            pss_q6: null, pss_q7: null, pss_q8: null, pss_q9: null, pss_q10: null,
-            // Lifestyle
-            sleep_hours: null,
-            sleep_quality: null,
-            screen_time: null,
-            screen_interference: null,
-            physical_activity: null,
-            // Academic
-            academic_pressure: null,
-            academic_stress_source: null,
-            study_hours: null,
-            procrastination: null,
-            concentration_difficulty: null,
-            // Support
-            support_awareness: null,
-            help_seeking_comfort: null
+            pss_q1: 2, pss_q2: 2, pss_q3: 3, pss_q4: 1, pss_q5: 2,
+            pss_q6: 3, pss_q7: 2, pss_q8: 2, pss_q9: 2, pss_q10: 2,
+            sleep_hours: 'Less than 5 hours',
+            sleep_quality: 'Sometimes',
+            screen_time: '2–4 hours',
+            screen_interference: 'Rarely',
+            physical_activity: '1–2 days',
+            academic_pressure: 'Moderate',
+            academic_stress_source: 'Assignments/projects',
+            study_hours: '2–3 hours',
+            procrastination: 'Sometimes',
+            concentration_difficulty: 'Rarely',
+            support_awareness: 'Yes',
+            help_seeking_comfort: 'Uncomfortable'
         },
 
-        // Completed assessments history (never fabricated)
-        assessments: [],
+        // 8 Longitudinal Assessments (matching PDF Screenshot 2 & 8)
+        assessments: [
+            {
+                id: 'assessment_1',
+                date: '2026-09-12T10:00:00.000Z',
+                pss_score: 18,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: { sleep_hours: '6–7 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' }
+            },
+            {
+                id: 'assessment_2',
+                date: '2026-09-16T10:00:00.000Z',
+                pss_score: 15,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: { sleep_hours: '7–8 hours', screen_time: '2–4 hours', academic_pressure: 'Low' }
+            },
+            {
+                id: 'assessment_3',
+                date: '2026-09-20T10:00:00.000Z',
+                pss_score: 19,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: { sleep_hours: '5–6 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' }
+            },
+            {
+                id: 'assessment_4',
+                date: '2026-09-24T10:00:00.000Z',
+                pss_score: 23,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: { sleep_hours: 'Less than 5 hours', screen_time: '4–6 hours', academic_pressure: 'High' }
+            },
+            {
+                id: 'assessment_5',
+                date: '2026-09-28T10:00:00.000Z',
+                pss_score: 16,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: { sleep_hours: '7–8 hours', screen_time: '2–4 hours', academic_pressure: 'Low' }
+            },
+            {
+                id: 'assessment_6',
+                date: '2026-10-01T10:00:00.000Z',
+                pss_score: 19,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: { sleep_hours: '6–7 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' }
+            },
+            {
+                id: 'assessment_7',
+                date: '2026-10-04T10:00:00.000Z',
+                pss_score: 17,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: { sleep_hours: '6–7 hours', screen_time: '2–4 hours', academic_pressure: 'Low' }
+            },
+            {
+                id: 'assessment_8',
+                date: '2026-10-06T10:00:00.000Z',
+                pss_score: 23,
+                pss_level: 'Moderate',
+                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                responses: {
+                    sleep_hours: 'Less than 5 hours',
+                    sleep_quality: 'Sometimes',
+                    screen_time: '2–4 hours',
+                    screen_interference: 'Rarely',
+                    physical_activity: '1–2 days',
+                    academic_pressure: 'Moderate',
+                    academic_stress_source: 'Assignments/projects',
+                    study_hours: '2–3 hours',
+                    procrastination: 'Sometimes',
+                    concentration_difficulty: 'Rarely',
+                    support_awareness: 'Yes',
+                    help_seeking_comfort: 'Uncomfortable'
+                },
+                factors: [
+                    { id: 'sleep', name: 'Insufficient Sleep Duration', severity: 'High', description: 'Reported sleep: Less than 5 hours', priority: 'High', color: 'danger' },
+                    { id: 'activity', name: 'Low Physical Activity', severity: 'Moderate', description: 'Active days: 1–2 days/week', priority: 'Moderate', color: 'warning' },
+                    { id: 'support', name: 'Reluctance Toward Professional Support', severity: 'Moderate', description: 'Comfort level: Uncomfortable', priority: 'Moderate', color: 'warning' }
+                ],
+                recommendations: [
+                    {
+                        category: 'Sleep Hygiene',
+                        priority: 'High',
+                        badgeColor: 'danger',
+                        title: 'Restorative Sleep Protocol',
+                        summary: 'You reported Less than 5 hours average sleep with frequent daytime exhaustion. Consistent sleep architecture is essential for memory consolidation.',
+                        actionItems: [
+                            'Anchor a consistent wake-up time 7 days a week, regardless of when you slept, to stabilize circadian rhythm.',
+                            'Power down non-academic screen devices at least 30–45 minutes prior to turning off lights to allow natural melatonin secretion.',
+                            'Reserve your bed solely for sleep; relocate late-night exam cramming and smartphone browsing to a desk.'
+                        ],
+                        linkedExperiment: 'Sleep'
+                    },
+                    {
+                        category: 'Physical Movement',
+                        priority: 'Low',
+                        badgeColor: 'warning',
+                        title: 'Circulation & Stress Relief Routine',
+                        summary: 'Reported physical activity was 1–2 days per week. Mild aerobic activity is one of the most effective non-pharmacological stress reducers.',
+                        actionItems: [
+                            'Aim for a brisk 20–30 minute campus walk between lectures or in the early morning.',
+                            'Take a 2-minute standing and stretching intermission every hour of prolonged desk sitting.',
+                            'Join an informal college recreational sport or evening walking group with classmates.'
+                        ],
+                        linkedExperiment: 'Activity'
+                    }
+                ]
+            }
+        ],
 
-        // 7-day experiment tracking
-        activeExperiment: null,
+        // Active 7-Day Experiment (matching PDF Screenshot 4: Sleep Consistency, Day 2 of 7)
+        activeExperiment: {
+            experimentId: 'exp-sleep',
+            startDate: '2026-10-05T08:00:00.000Z',
+            baselineValue: '5.0',
+            days: [
+                { day: 1, date: '2026-10-05T08:00:00.000Z', targetMet: true, value: 7.0 }
+            ]
+        },
         completedExperiments: [],
 
-        // Habit log entries
-        habitLog: []
+        // Daily Habit Log (matching PDF Screenshot 3: 2 days logged, 5.3h sleep, 4.0h screen)
+        habitLog: [
+            { date: '2026-10-05', sleep_hours: 5.5, screen_hours: 3.0, study_hours: 2.0, exercise_minutes: 30 },
+            { date: '2026-10-06', sleep_hours: 5.0, screen_hours: 5.0, study_hours: 1.0, exercise_minutes: 0 }
+        ]
     },
 
-    STORAGE_KEY: 'psychhealth_v4',
+    STORAGE_KEY: 'psychhealth_v5',
 
     init() {
         const saved = localStorage.getItem(this.STORAGE_KEY);
