@@ -172,7 +172,7 @@ const Charts = {
     },
 
     /**
-     * Longitudinal Stress Score Curve (Screenshot 13)
+     * Longitudinal Stress Score Curve — Sleek, High-DPI, Trend Chart
      */
     renderStressTrend(canvasId, assessments = []) {
         const canvas = document.getElementById(canvasId);
@@ -181,81 +181,151 @@ const Charts = {
         if (!setup) return;
         const { ctx, width, height } = setup;
 
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         ctx.clearRect(0, 0, width, height);
 
         const list = assessments.length > 0 ? assessments : [
-            { pss_score: 22, date: '2026-09-28', label: 'Baseline' },
-            { pss_score: 17, date: '2026-10-05', label: 'Day 7' }
+            { pss_score: 22, date: new Date(Date.now() - 7 * 86400000).toISOString(), label: 'Baseline' },
+            { pss_score: 18, date: new Date().toISOString(), label: 'Current' }
         ];
 
-        const padding = { top: 25, right: 35, bottom: 35, left: 35 };
+        const padding = { top: 32, right: 38, bottom: 42, left: 38 };
         const chartW = width - padding.left - padding.right;
         const chartH = height - padding.top - padding.bottom;
 
-        const yForScore = (s) => padding.top + chartH - (s / 40) * chartH;
+        const yForScore = (s) => padding.top + chartH - (Math.max(0, Math.min(40, s)) / 40) * chartH;
 
-        // Threshold bands
+        // Draw Soft Normative Zone Bands
+        const y0 = yForScore(0);
+        const y13 = yForScore(13);
+        const y26 = yForScore(26);
+        const y40 = yForScore(40);
+
+        // Low Zone (0-13): Soft Green
+        ctx.fillStyle = isDark ? 'rgba(16, 185, 129, 0.06)' : 'rgba(16, 185, 129, 0.08)';
+        ctx.fillRect(padding.left, y13, chartW, y0 - y13);
+
+        // Moderate Zone (14-26): Soft Amber
+        ctx.fillStyle = isDark ? 'rgba(245, 158, 11, 0.06)' : 'rgba(245, 158, 11, 0.07)';
+        ctx.fillRect(padding.left, y26, chartW, y13 - y26);
+
+        // High Zone (27-40): Soft Red
+        ctx.fillStyle = isDark ? 'rgba(239, 68, 68, 0.06)' : 'rgba(239, 68, 68, 0.07)';
+        ctx.fillRect(padding.left, y40, chartW, y26 - y40);
+
+        // Zone Boundary Dashed Lines & Labels
         const bands = [
-            { score: 13, label: 'Low (13)', color: 'rgba(16, 185, 129, 0.4)' },
-            { score: 26, label: 'Mod (26)', color: 'rgba(245, 158, 11, 0.4)' }
+            { score: 13, label: 'Low ≤13', color: '#10b981' },
+            { score: 26, label: 'Mod ≤26', color: '#f59e0b' }
         ];
 
         bands.forEach(b => {
             const y = yForScore(b.score);
             ctx.beginPath();
-            ctx.setLineDash([4, 4]);
+            ctx.setLineDash([5, 5]);
             ctx.moveTo(padding.left, y);
             ctx.lineTo(width - padding.right, y);
-            ctx.strokeStyle = b.color;
+            ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
             ctx.lineWidth = 1;
             ctx.stroke();
             ctx.setLineDash([]);
 
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '10px sans-serif';
+            ctx.fillStyle = b.color;
+            ctx.font = '600 10px sans-serif';
             ctx.textAlign = 'right';
             ctx.fillText(b.label, width - padding.right, y - 4);
         });
 
+        // Map Data Points
         const points = list.map((a, i) => {
             const x = list.length === 1
                 ? padding.left + chartW / 2
                 : padding.left + (i / (list.length - 1)) * chartW;
             const y = yForScore(a.pss_score);
-            return { x, y, score: a.pss_score, date: a.label || a.date };
+            const dt = a.date ? new Date(a.date) : null;
+            const dateStr = dt && !isNaN(dt) ? `${dt.getDate()}/${dt.getMonth() + 1}` : (a.label || `T${i + 1}`);
+            return { x, y, score: a.pss_score, date: dateStr, level: a.pss_level };
         });
 
-        // Line
+        // Shaded Gradient Fill Under Curve
         if (points.length > 1) {
+            const grad = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+            grad.addColorStop(0, isDark ? 'rgba(59, 130, 246, 0.35)' : 'rgba(37, 99, 235, 0.22)');
+            grad.addColorStop(1, isDark ? 'rgba(59, 130, 246, 0.0)' : 'rgba(37, 99, 235, 0.0)');
+
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, y0);
+            ctx.lineTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                const prev = points[i - 1];
+                const curr = points[i];
+                const cx = (prev.x + curr.x) / 2;
+                ctx.bezierCurveTo(cx, prev.y, cx, curr.y, curr.x, curr.y);
+            }
+            ctx.lineTo(points[points.length - 1].x, y0);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Smooth Trend Line
             ctx.beginPath();
             ctx.moveTo(points[0].x, points[0].y);
             for (let i = 1; i < points.length; i++) {
-                ctx.lineTo(points[i].x, points[i].y);
+                const prev = points[i - 1];
+                const curr = points[i];
+                const cx = (prev.x + curr.x) / 2;
+                ctx.bezierCurveTo(cx, prev.y, cx, curr.y, curr.x, curr.y);
             }
             ctx.strokeStyle = '#2563eb';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
             ctx.stroke();
         }
 
-        // Points
+        // Render Data Point Bullets & Badges
         points.forEach((pt) => {
+            // Glow halo
             ctx.beginPath();
-            ctx.arc(pt.x, pt.y, 5, 0, 2 * Math.PI);
+            ctx.arc(pt.x, pt.y, 9, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(37, 99, 235, 0.18)';
+            ctx.fill();
+
+            // Main dot
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 6, 0, 2 * Math.PI);
             ctx.fillStyle = '#2563eb';
             ctx.fill();
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
 
-            // Label
-            ctx.fillStyle = '#0f172a';
-            ctx.font = 'bold 11px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(`${pt.score} PSS`, pt.x, pt.y - 10);
+            // Score Pill Badge
+            const pillW = 46;
+            const pillH = 18;
+            const pillX = pt.x - pillW / 2;
+            const pillY = pt.y - 28;
 
-            ctx.fillStyle = '#64748b';
-            ctx.font = '10px sans-serif';
-            ctx.fillText(pt.date, pt.x, height - padding.bottom + 16);
+            ctx.fillStyle = isDark ? '#1e293b' : '#ffffff';
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 1.2;
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(pillX, pillY, pillW, pillH, 9);
+                ctx.fill();
+                ctx.stroke();
+            } else {
+                ctx.fillRect(pillX, pillY, pillW, pillH);
+            }
+
+            ctx.fillStyle = isDark ? '#ffffff' : '#0f172a';
+            ctx.font = '700 10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${pt.score} PSS`, pt.x, pillY + 13);
+
+            // Date text at bottom
+            ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+            ctx.font = '500 11px sans-serif';
+            ctx.fillText(pt.date, pt.x, height - padding.bottom + 20);
         });
     }
 };
