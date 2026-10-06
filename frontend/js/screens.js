@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    PsychHealth — Screen Rendering Engine
    Clean, minimal, clinical design following GEMINI.md.
    Strictly Mobile-First Responsive Layouts with Touch Optimization.
@@ -315,6 +315,12 @@ const Screens = {
 
                 <form id="form-profile-setup" class="card">
                     <div class="form-group mb-md">
+                        <label class="form-label mb-xs block" for="prof-name">Name / Preferred Alias</label>
+                        <input type="text" id="prof-name" name="name" class="form-control" placeholder="e.g. Alex M. or Student-04" value="${p.name || ''}" required>
+                        <span class="text-xs text-tertiary">Used for personalizing your dashboard greeting and progress tracking.</span>
+                    </div>
+
+                    <div class="form-group mb-md">
                         <label class="form-label mb-xs block" for="prof-course">Course / Stream</label>
                         <select id="prof-course" name="course" class="form-control" required>
                             <option value="">Select course...</option>
@@ -390,18 +396,29 @@ const Screens = {
         const p = AppState.getProfile();
         const count = AppState.getAssessments().length;
 
+        // Real-time greeting calculation
+        const hour = new Date().getHours();
+        let greetingTime = 'Good morning';
+        if (hour >= 12 && hour < 17) {
+            greetingTime = 'Good afternoon';
+        } else if (hour >= 17) {
+            greetingTime = 'Good evening';
+        }
+        const studentName = p.name ? p.name : 'Student';
+        const greeting = `${greetingTime}, ${studentName} 👋`;
+
         if (!latest) {
             // First time student state
             return `
                 <div class="dashboard-wrap animate-fade-in">
                     <div class="dash-header">
                         <div>
-                            <h1 class="text-2xl font-bold">Student Wellness Dashboard</h1>
+                            <h1 class="text-2xl font-bold">${greeting}</h1>
                             <p class="text-sm text-secondary">Track perceived stress, lifestyle covariance, and academic resilience.</p>
                         </div>
                     </div>
 
-                    <div class="card p-xl mb-lg text-center">
+                    <div class="card p-xl mb-lg text-center" style="border-top: 4px solid var(--accent); background: linear-gradient(180deg, rgba(13,148,136,0.05) 0%, var(--surface) 100%);">
                         <span class="badge badge-accent mb-sm">No Active Assessment</span>
                         <h2 class="text-xl font-bold mb-xs">Welcome to PsychHealth</h2>
                         <p class="text-secondary max-w-md mx-auto mb-md text-sm">
@@ -411,16 +428,16 @@ const Screens = {
                     </div>
 
                     <div class="kpi-grid">
-                        <div class="card">
-                            <h3 class="font-semibold text-sm mb-xs">Standardized PSS-10</h3>
+                        <div class="card" style="border-left: 4px solid #0d9488;">
+                            <h3 class="font-semibold text-sm mb-xs text-accent">Standardized PSS-10</h3>
                             <p class="text-xs text-secondary">Measures unpredictability, overload, and confidence under the Cohen scale.</p>
                         </div>
-                        <div class="card">
-                            <h3 class="font-semibold text-sm mb-xs">Actionable Guidance</h3>
+                        <div class="card" style="border-left: 4px solid #6366f1;">
+                            <h3 class="font-semibold text-sm mb-xs" style="color:#6366f1;">Actionable Guidance</h3>
                             <p class="text-xs text-secondary">Deterministic rule-based recommendations for sleep, screen, and study hygiene.</p>
                         </div>
-                        <div class="card">
-                            <h3 class="font-semibold text-sm mb-xs">What-If Simulation</h3>
+                        <div class="card" style="border-left: 4px solid #f59e0b;">
+                            <h3 class="font-semibold text-sm mb-xs" style="color:#f59e0b;">What-If Simulation</h3>
                             <p class="text-xs text-secondary">Test how adjusting your sleep duration or screen time alters stress patterns.</p>
                         </div>
                     </div>
@@ -436,7 +453,7 @@ const Screens = {
             <div class="dashboard-wrap animate-fade-in">
                 <div class="dash-header">
                     <div>
-                        <h1 class="text-2xl font-bold">Student Wellness Overview</h1>
+                        <h1 class="text-2xl font-bold">${greeting}</h1>
                         <p class="text-sm text-secondary">
                             ${p.course ? `${p.course} · ${p.year || 'Student'}` : 'Participant Overview'} · Last assessed: ${new Date(latest.date).toLocaleDateString()}
                         </p>
@@ -447,13 +464,13 @@ const Screens = {
                     </div>
                 </div>
 
-                <!-- Responsive 1-3 Column KPI Grid -->
+                <!-- Responsive 1-3 Column KPI Grid with Rich Vibrant Visual Accents -->
                 <div class="kpi-grid">
                     <!-- Hero KPI Card: PSS-10 Primary Score -->
-                    <div class="kpi-card hero-kpi">
+                    <div class="kpi-card hero-kpi" style="border-left: 4px solid var(--accent); background: linear-gradient(135deg, rgba(13,148,136,0.08) 0%, var(--surface) 100%);">
                         <div>
                             <div class="flex justify-between items-center mb-xs">
-                                <span class="kpi-label">Perceived Stress (PSS-10)</span>
+                                <span class="kpi-label" style="color: var(--accent);">Perceived Stress (PSS-10)</span>
                                 <span class="badge ${levelBadgeClass}">${latest.pss_level} Stress</span>
                             </div>
                             <div class="kpi-value">${latest.pss_score} <span class="text-sm font-normal text-tertiary">/ 40</span></div>
@@ -466,41 +483,46 @@ const Screens = {
                         </div>
                     </div>
 
-                    <div class="kpi-card">
+                    <!-- Sleep Duration KPI Card -->
+                    <div class="kpi-card" style="border-left: 4px solid #6366f1; background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, var(--surface) 100%);">
                         <div>
-                            <span class="kpi-label">Average Sleep</span>
+                            <span class="kpi-label" style="color: #6366f1;">Average Sleep</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.sleep_hours || 'Not recorded'}</div>
                         </div>
                         <div class="kpi-sub">${latest.responses.sleep_quality ? `Day fatigue: ${latest.responses.sleep_quality}` : 'Self-reported'}</div>
                     </div>
 
-                    <div class="kpi-card">
+                    <!-- Screen Time KPI Card -->
+                    <div class="kpi-card" style="border-left: 4px solid #f59e0b; background: linear-gradient(135deg, rgba(245,158,11,0.06) 0%, var(--surface) 100%);">
                         <div>
-                            <span class="kpi-label">Screen Time (Non-Acad)</span>
+                            <span class="kpi-label" style="color: #f59e0b;">Screen Time (Non-Acad)</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.screen_time || 'Not recorded'}</div>
                         </div>
                         <div class="kpi-sub">${latest.responses.screen_interference ? `Interference: ${latest.responses.screen_interference}` : 'Recreational'}</div>
                     </div>
 
-                    <div class="kpi-card">
+                    <!-- Academic Pressure KPI Card -->
+                    <div class="kpi-card" style="border-left: 4px solid #ec4899; background: linear-gradient(135deg, rgba(236,72,153,0.06) 0%, var(--surface) 100%);">
                         <div>
-                            <span class="kpi-label">Academic Pressure</span>
+                            <span class="kpi-label" style="color: #ec4899;">Academic Pressure</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.academic_pressure || 'Not recorded'}</div>
                         </div>
                         <div class="kpi-sub">${latest.responses.academic_stress_source ? `Source: ${latest.responses.academic_stress_source}` : 'Coursework'}</div>
                     </div>
 
-                    <div class="kpi-card">
+                    <!-- Physical Activity KPI Card -->
+                    <div class="kpi-card" style="border-left: 4px solid #10b981; background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, var(--surface) 100%);">
                         <div>
-                            <span class="kpi-label">Physical Activity</span>
+                            <span class="kpi-label" style="color: #10b981;">Physical Activity</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.physical_activity || 'Not recorded'}</div>
                         </div>
                         <div class="kpi-sub">30+ min exercise / week</div>
                     </div>
 
-                    <div class="kpi-card">
+                    <!-- Longitudinal Assessment Count Card -->
+                    <div class="kpi-card" style="border-left: 4px solid #06b6d4; background: linear-gradient(135deg, rgba(6,182,212,0.06) 0%, var(--surface) 100%);">
                         <div>
-                            <span class="kpi-label">Assessment History</span>
+                            <span class="kpi-label" style="color: #06b6d4;">Assessment History</span>
                             <div class="kpi-value mt-xs">${count} <span class="text-sm font-normal text-tertiary">sessions</span></div>
                         </div>
                         <div class="kpi-sub"><a href="#/progress" class="text-accent font-medium">View longitudinal trend →</a></div>
@@ -569,6 +591,7 @@ const Screens = {
         const savedVal = AppState.getAssessmentField(`pss_q${qIndex}`);
         const pct = Math.round((qIndex / 10) * 100);
         const qCode = `PSS-${String(qIndex).padStart(2, '0')}`;
+        const displayText = q.text.replace(/^In the last month,\s*/i, '');
 
         return `
             <div class="assessment-wrap animate-fade-in">
@@ -585,7 +608,7 @@ const Screens = {
                     <div class="mb-xs">
                         <span class="badge badge-accent font-mono font-bold" style="font-size: 0.72rem; padding: 2px 8px; letter-spacing: 0.04em;">${qCode}</span>
                     </div>
-                    <h2 class="question-text">${q.text}</h2>
+                    <h2 class="question-text">${displayText}</h2>
 
                     <div id="pss-radio-options" class="flex flex-col gap-xs mt-sm">
                         ${DATA.pssOptions.map(opt => `
@@ -944,6 +967,8 @@ const Screens = {
             `;
         }
 
+        const assessments = AppState.getAssessments();
+        const prev = assessments.length > 1 ? assessments[assessments.length - 2] : null;
         const levelBadgeClass = latest.pss_level === 'Low' ? 'badge-success' : latest.pss_level === 'Moderate' ? 'badge-warning' : 'badge-danger';
         const pssPct = Math.round((latest.pss_score / 40) * 100);
 
@@ -979,6 +1004,70 @@ const Screens = {
                         ${latest.description || 'Your score reflects your self-reported feelings of overload, unpredictability, and perceived coping efficacy during the past month.'}
                     </p>
                 </div>
+
+                ${prev ? `
+                    <div class="card mb-md" style="border-left: 4px solid var(--accent); background: linear-gradient(180deg, rgba(13,148,136,0.04) 0%, var(--surface) 100%);">
+                        <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
+                            <span class="badge badge-accent">Longitudinal Comparison</span>
+                            <span class="text-xs text-tertiary">Session #${assessments.length - 1} vs Session #${assessments.length}</span>
+                        </div>
+                        <h3 class="font-bold text-base mb-xs">Previous vs Current Assessment Comparison</h3>
+                        <p class="text-xs text-secondary mb-md">
+                            Comparing your previous session (${new Date(prev.date).toLocaleDateString()}) with today's results:
+                        </p>
+
+                        <div class="table-container mb-sm">
+                            <table class="table-clean text-xs">
+                                <thead>
+                                    <tr>
+                                        <th>Metric / Factor</th>
+                                        <th>Previous Score</th>
+                                        <th>Current Score</th>
+                                        <th>Observed Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-semibold">PSS-10 Total Score</td>
+                                        <td>${prev.pss_score} / 40 (${prev.pss_level})</td>
+                                        <td class="font-bold">${latest.pss_score} / 40 (${latest.pss_level})</td>
+                                        <td>
+                                            ${latest.pss_score < prev.pss_score ? `
+                                                <span class="badge badge-success">-${prev.pss_score - latest.pss_score} pts ↓ (Improved)</span>
+                                            ` : latest.pss_score > prev.pss_score ? `
+                                                <span class="badge badge-danger">+${latest.pss_score - prev.pss_score} pts ↑</span>
+                                            ` : `
+                                                <span class="badge badge-secondary">0 pts (Unchanged)</span>
+                                            `}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold">Average Sleep</td>
+                                        <td>${prev.responses?.sleep_hours || 'Not recorded'}</td>
+                                        <td class="font-semibold">${latest.responses?.sleep_hours || 'Not recorded'}</td>
+                                        <td>${prev.responses?.sleep_hours === latest.responses?.sleep_hours ? '<span class="text-tertiary">Same</span>' : '<span class="text-accent font-medium">Updated</span>'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold">Screen Time (Non-Acad)</td>
+                                        <td>${prev.responses?.screen_time || 'Not recorded'}</td>
+                                        <td class="font-semibold">${latest.responses?.screen_time || 'Not recorded'}</td>
+                                        <td>${prev.responses?.screen_time === latest.responses?.screen_time ? '<span class="text-tertiary">Same</span>' : '<span class="text-accent font-medium">Updated</span>'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold">Academic Pressure</td>
+                                        <td>${prev.responses?.academic_pressure || 'Not recorded'}</td>
+                                        <td class="font-semibold">${latest.responses?.academic_pressure || 'Not recorded'}</td>
+                                        <td>${prev.responses?.academic_pressure === latest.responses?.academic_pressure ? '<span class="text-tertiary">Same</span>' : '<span class="text-accent font-medium">Updated</span>'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-xs text-tertiary flex justify-between items-center flex-wrap gap-xs">
+                            <span>*Personal longitudinal trajectory across repeated evaluations.</span>
+                            <a href="#/progress" class="text-accent font-semibold">View Full Progress Trends Curve →</a>
+                        </div>
+                    </div>
+                ` : ''}
 
                 <div class="card mb-md">
                     <div class="flex items-center justify-between mb-sm flex-wrap gap-xs">
@@ -1106,6 +1195,7 @@ const Screens = {
        ------------------------------------------------------------ */
     renderPlan() {
         const activeExp = AppState.getActiveExperiment();
+        const lastExp = AppState.getLastCompletedExperiment();
         const experiments = DATA.experiments;
 
         return `
@@ -1113,49 +1203,104 @@ const Screens = {
                 <div class="dash-header mb-md">
                     <div>
                         <h1 class="text-2xl font-bold">7-Day Habit Experiments</h1>
-                        <span class="text-xs text-tertiary">Structured micro-interventions to test empirical stress reduction</span>
+                        <span class="text-xs text-tertiary">Recommendation → Structured 7-day intervention → Completion → Observation</span>
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
                 </div>
 
                 ${activeExp ? `
-                    <div class="card mb-lg" style="border-color: var(--accent);">
-                        <div class="flex justify-between items-center mb-xs">
-                            <span class="badge badge-accent">Active Experiment</span>
+                    <div class="card mb-lg" style="border-left: 4px solid var(--accent); background: linear-gradient(180deg, rgba(13,148,136,0.04) 0%, var(--surface) 100%);">
+                        <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
+                            <span class="badge badge-accent">Active Protocol</span>
                             <span class="text-xs font-semibold text-accent">Day ${activeExp.days.length + 1} of 7</span>
                         </div>
                         <h3 class="font-bold text-base mb-xs">
-                            ${experiments.find(e => e.id === activeExp.experimentId)?.title || 'Current Experiment'}
+                            ${experiments.find(e => e.id === activeExp.experimentId)?.title || '7-Day Experiment'}
                         </h3>
-                        <p class="text-xs text-secondary mb-md">
-                            ${experiments.find(e => e.id === activeExp.experimentId)?.goal || 'Daily micro-intervention.'}
+                        <p class="text-xs text-secondary mb-sm">
+                            <strong>Goal:</strong> ${experiments.find(e => e.id === activeExp.experimentId)?.goal || 'Improve consistency'}
                         </p>
+
+                        <div class="p-xs bg-subtle rounded text-xs text-secondary mb-md">
+                            <strong>Daily Protocol:</strong> Consistent schedule · Zero recreational screens 30 min before bed · Record daily target
+                        </div>
 
                         <div class="progress-bar mb-md">
                             <div class="progress-bar-fill" style="width: ${(activeExp.days.length / 7) * 100}%;"></div>
                         </div>
 
                         <div class="mb-md">
-                            <div class="text-xs font-semibold mb-xs">Completed Days:</div>
-                            <div class="flex gap-xs">
+                            <div class="text-xs font-semibold mb-xs">Protocol Progression:</div>
+                            <div class="flex gap-xs flex-wrap">
                                 ${[1, 2, 3, 4, 5, 6, 7].map(d => `
-                                    <div class="p-xs text-center border rounded flex-1 text-xs ${d <= activeExp.days.length ? 'bg-accent text-white font-bold' : ''}">
-                                        D${d}
+                                    <div class="p-xs text-center border rounded flex-1 min-w-[42px] text-xs ${d <= activeExp.days.length ? 'bg-accent text-white font-bold' : ''}">
+                                        ${d <= activeExp.days.length ? `Day ${d} ✓` : `Day ${d}`}
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
 
                         <form id="form-log-exp-day" class="p-sm bg-subtle rounded-md flex items-center justify-between gap-sm flex-wrap">
-                            <div class="text-xs font-medium">Log Today's Target:</div>
-                            <input type="number" id="exp-daily-val" step="0.5" class="form-control" style="width: 100px;" placeholder="e.g. 7.5" required>
-                            <button type="submit" class="btn btn-primary btn-sm">Record Day ${activeExp.days.length + 1}</button>
+                            <div class="text-xs font-medium">Log Day ${activeExp.days.length + 1} Target:</div>
+                            <div class="flex items-center gap-xs">
+                                <input type="number" id="exp-daily-val" step="0.5" min="0" max="24" class="form-control" style="width: 100px;" placeholder="e.g. 7.0" required>
+                                <span class="text-xs text-tertiary">hrs</span>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm">Record Day ${activeExp.days.length + 1} →</button>
                         </form>
                     </div>
                 ` : ''}
 
+                ${(!activeExp && lastExp) ? `
+                    <div class="card mb-lg" style="border-left: 4px solid #16a34a; background: linear-gradient(180deg, rgba(22,163,74,0.05) 0%, var(--surface) 100%);">
+                        <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
+                            <span class="badge badge-success">Protocol Completed 🎉</span>
+                            <span class="text-xs text-tertiary">Finished ${new Date(lastExp.completionDate).toLocaleDateString()}</span>
+                        </div>
+                        <h3 class="font-bold text-base mb-xs">
+                            ${experiments.find(e => e.id === lastExp.experimentId)?.title || '7-Day Sleep Experiment'}
+                        </h3>
+                        <p class="text-xs text-secondary mb-md">
+                            <strong>Goal Achieved:</strong> ${experiments.find(e => e.id === lastExp.experimentId)?.goal || 'Target consistency'}
+                        </p>
+
+                        <div class="flex gap-xs mb-md flex-wrap">
+                            ${[1, 2, 3, 4, 5, 6, 7].map(d => `
+                                <div class="p-xs text-center border rounded flex-1 min-w-[42px] text-xs bg-success text-white font-bold" style="background:#16a34a;">
+                                    Day ${d} ✓
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="kpi-grid mb-md">
+                            <div class="kpi-card" style="border-left: 3px solid var(--text-3);">
+                                <div class="kpi-label">Before Experiment</div>
+                                <div class="kpi-value text-base mt-xs">${lastExp.baselineValue} hrs</div>
+                                <div class="kpi-sub">Baseline average</div>
+                            </div>
+                            <div class="kpi-card" style="border-left: 3px solid #16a34a;">
+                                <div class="kpi-label" style="color:#16a34a;">During Experiment</div>
+                                <div class="kpi-value text-base mt-xs">${lastExp.duringAverage} hrs</div>
+                                <div class="kpi-sub">7-day completed average</div>
+                            </div>
+                            <div class="kpi-card" style="border-left: 3px solid var(--accent);">
+                                <div class="kpi-label" style="color:var(--accent);">Observed Shift</div>
+                                <div class="kpi-value text-base mt-xs">
+                                    ${lastExp.delta >= 0 ? `+${lastExp.delta.toFixed(1)} hrs ↑` : `${lastExp.delta.toFixed(1)} hrs ↓`}
+                                </div>
+                                <div class="kpi-sub">Net behavioral change</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between flex-wrap gap-sm pt-xs border-t">
+                            <span class="text-xs text-secondary">Observations ready to review in your longitudinal trends.</span>
+                            <a href="#/progress" class="btn btn-primary">View Progress & Trends →</a>
+                        </div>
+                    </div>
+                ` : ''}
+
                 <h3 class="font-semibold text-sm mb-xs">Available Experiment Protocols</h3>
-                <p class="text-xs text-secondary mb-md">Select one habit track to focus on for the next 7 days:</p>
+                <p class="text-xs text-secondary mb-md">Select one structured micro-intervention to focus on for 7 consecutive days:</p>
 
                 <div class="flex flex-col gap-sm mb-lg">
                     ${experiments.map(exp => `
@@ -1172,7 +1317,7 @@ const Screens = {
                 </div>
 
                 <div class="card p-sm bg-subtle text-xs text-tertiary">
-                    These 7-day micro-interventions allow tracking individual baseline shifts before and after behavioural changes.
+                    <strong>Research Architecture Note:</strong> 7-Day Experiments represent structured micro-interventions. At completion, observations flow directly into Progress Trends to assess subjective change without claiming medical causality.
                 </div>
             </div>
         `;
@@ -1191,21 +1336,28 @@ const Screens = {
                 <div class="dash-header mb-md">
                     <div>
                         <h1 class="text-2xl font-bold">Daily Habit Log</h1>
-                        <span class="text-xs text-tertiary">Empirical tracking of sleep, screen, study, and physical activity</span>
+                        <span class="text-xs text-tertiary">Database of daily lifestyle observations</span>
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
                 </div>
 
+                <div class="card p-sm bg-subtle mb-md flex items-center gap-sm flex-wrap" style="border-left: 4px solid #6366f1;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+                    <span class="text-xs text-secondary">
+                        <strong>Data Flow:</strong> Your daily entries here feed directly into <a href="#/progress" class="text-accent font-semibold">Progress Trends</a> charts and the <a href="#/simulator" class="text-accent font-semibold">What-If Simulator</a>.
+                    </span>
+                </div>
+
                 <div class="kpi-grid mb-md">
-                    <div class="kpi-card">
+                    <div class="kpi-card" style="border-left: 3px solid var(--accent);">
                         <div class="kpi-label">Active Streak</div>
                         <div class="kpi-value">${streak} <span class="text-xs font-normal text-tertiary">days</span></div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card" style="border-left: 3px solid #6366f1;">
                         <div class="kpi-label">7-Day Avg Sleep</div>
                         <div class="kpi-value">${summary.avgSleep} <span class="text-xs font-normal text-tertiary">hrs</span></div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card" style="border-left: 3px solid #f59e0b;">
                         <div class="kpi-label">7-Day Avg Screen</div>
                         <div class="kpi-value">${summary.avgScreen} <span class="text-xs font-normal text-tertiary">hrs</span></div>
                     </div>
@@ -1231,17 +1383,34 @@ const Screens = {
                             <input type="number" id="h-exercise" step="5" min="0" max="180" class="form-control" placeholder="e.g. 30" required>
                         </div>
                     </div>
+                    <div class="mb-md">
+                        <label class="text-xs font-medium block mb-xs">Daily Perceived Stress (Optional, 1–5)</label>
+                        <div class="flex gap-xs flex-wrap">
+                            ${[1,2,3,4,5].map(v => `
+                                <label class="radio-chip">
+                                    <input type="radio" name="daily_stress" value="${v}">
+                                    <span>${v} — ${['Very Low','Low','Moderate','High','Very High'][v-1]}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                        <span class="text-xs text-tertiary">Quick daily mood check — not a validated scale, used for personal trend observation only.</span>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-block">Save Today's Entry ✓</button>
                 </form>
 
                 <div class="card">
-                    <h3 class="font-semibold text-sm mb-xs">Recent Entries</h3>
+                    <div class="flex justify-between items-center mb-xs">
+                        <h3 class="font-semibold text-sm">Recent Entries</h3>
+                        <a href="#/progress" class="text-xs text-accent font-medium">View Trends →</a>
+                    </div>
                     ${logs.length > 0 ? `
                         <div class="flex flex-col gap-xs mt-sm">
-                            ${logs.slice(-5).reverse().map(l => `
+                            ${logs.slice(-7).reverse().map(l => `
                                 <div class="flex items-center justify-between p-xs border-b text-xs">
                                     <span class="font-medium">${l.date}</span>
-                                    <span class="text-secondary">${l.sleep_hours}h sleep · ${l.screen_hours}h screen · ${l.study_hours}h study · ${l.exercise_minutes}m exercise</span>
+                                    <span class="text-secondary">
+                                        ${l.sleep_hours}h sleep · ${l.screen_hours}h screen · ${l.study_hours}h study · ${l.exercise_minutes}m exercise${l.daily_stress ? ` · Stress: ${l.daily_stress}/5` : ''}
+                                    </span>
                                 </div>
                             `).join('')}
                         </div>
@@ -1258,28 +1427,100 @@ const Screens = {
        ------------------------------------------------------------ */
     renderProgress() {
         const assessments = AppState.getAssessments();
+        const comparison = AppState.getBeforeAfterComparison();
+        const habits = AppState.getHabitLog();
 
         return `
             <div class="assessment-wrap animate-fade-in">
                 <div class="dash-header mb-md">
                     <div>
-                        <h1 class="text-2xl font-bold">Progress Tracking</h1>
-                        <span class="text-xs text-tertiary">Longitudinal stress evaluation across repeated assessments</span>
+                        <h1 class="text-2xl font-bold">Progress & Trends</h1>
+                        <span class="text-xs text-tertiary">How have I changed? — Longitudinal observation across assessments and daily habits</span>
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
                 </div>
 
+                <!-- PSS-10 Stress Curve -->
                 <div class="card mb-md">
-                    <h3 class="font-semibold text-sm mb-xs">PSS-10 Longitudinal Trend</h3>
-                    <p class="text-xs text-secondary mb-md">Scores tracked across time intervals:</p>
+                    <h3 class="font-semibold text-sm mb-xs">PSS-10 Stress Trend</h3>
+                    <p class="text-xs text-secondary mb-md">Perceived stress scores tracked across repeated assessments with Cohen normative zones:</p>
                     
-                    <div style="height: 180px; position: relative;">
+                    <div style="height: 200px; position: relative;">
                         <canvas id="progress-curve-canvas"></canvas>
                     </div>
                 </div>
 
+                <!-- Lifestyle Trends Over Time -->
                 <div class="card mb-md">
-                    <h3 class="font-semibold text-sm mb-xs">Assessment History</h3>
+                    <h3 class="font-semibold text-sm mb-xs">Lifestyle Trends Over Time</h3>
+                    <p class="text-xs text-secondary mb-md">Sleep, screen time, and study hours from your daily habit log:</p>
+                    ${habits.length >= 2 ? `
+                        <div style="height: 180px; position: relative;">
+                            <canvas id="lifestyle-trend-canvas"></canvas>
+                        </div>
+                    ` : `
+                        <div class="p-sm bg-subtle rounded-md text-xs text-tertiary text-center">
+                            Log at least 2 daily entries in the <a href="#/tracking" class="text-accent font-semibold">Daily Habit Log</a> to see lifestyle trends here.
+                        </div>
+                    `}
+                </div>
+
+                <!-- Before vs After Comparison Table -->
+                ${comparison && comparison.hasMultiple ? `
+                    <div class="card mb-md" style="border-left: 4px solid var(--accent);">
+                        <h3 class="font-semibold text-sm mb-xs">Before vs After Comparison</h3>
+                        <p class="text-xs text-secondary mb-md">
+                            Comparing your first assessment (${new Date(comparison.baseline.date).toLocaleDateString()}) with your most recent (${new Date(comparison.current.date).toLocaleDateString()}):
+                        </p>
+
+                        <div class="table-container mb-sm">
+                            <table class="table-clean text-xs">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Baseline (First)</th>
+                                        <th>Current (Latest)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-semibold">PSS-10 Score</td>
+                                        <td>${comparison.baseline.pss} / 40 (${comparison.baseline.pss_level})</td>
+                                        <td class="font-bold">${comparison.current.pss} / 40 (${comparison.current.pss_level})</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold">Average Sleep</td>
+                                        <td>${comparison.baseline.sleep}</td>
+                                        <td>${comparison.current.sleep}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold">Screen Time</td>
+                                        <td>${comparison.baseline.screen}</td>
+                                        <td>${comparison.current.screen}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold">Physical Activity</td>
+                                        <td>${comparison.baseline.activity}</td>
+                                        <td>${comparison.current.activity}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-semibold">Study Hours</td>
+                                        <td>${comparison.baseline.study}</td>
+                                        <td>${comparison.current.study}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="p-xs bg-subtle rounded text-xs text-tertiary">
+                            ⚠️ <strong>Personal observation — not proof of causation.</strong> These numbers reflect your self-reported data over time. Changes may be coincidental.
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Assessment History Timeline -->
+                <div class="card mb-md">
+                    <h3 class="font-semibold text-sm mb-xs">Assessment Timeline</h3>
                     ${assessments.length > 0 ? `
                         <div class="flex flex-col gap-xs mt-sm">
                             ${assessments.map((a, idx) => `
@@ -1302,9 +1543,12 @@ const Screens = {
                     `}
                 </div>
 
-                <div class="flex justify-between items-center gap-sm">
+                <div class="flex justify-between items-center gap-sm flex-wrap">
                     <a href="#/pss" class="btn btn-primary">Retake PSS-10 →</a>
-                    <a href="#/simulator" class="btn btn-secondary">What-If Simulator</a>
+                    <div class="flex gap-xs">
+                        <a href="#/tracking" class="btn btn-secondary">Daily Habit Log</a>
+                        <a href="#/simulator" class="btn btn-ghost">What-If Simulator</a>
+                    </div>
                 </div>
             </div>
         `;
@@ -1470,8 +1714,80 @@ const Screens = {
                     </table>
                 </div>
 
-                <div class="card p-sm bg-subtle text-xs text-tertiary">
+                <div class="card p-sm bg-subtle text-xs text-tertiary mb-md">
                     This pilot table reflects authentic student survey responses. The dataset is used to calibrate preprocessing and feature engineering pipelines. Additional responses will expand the sample size before final zonal rounds.
+                </div>
+
+                <!-- Exploratory Observations -->
+                <div class="card mb-md" style="border-left: 4px solid #6366f1;">
+                    <h3 class="font-semibold text-sm mb-xs" style="color:#6366f1;">Exploratory Observations (N=${cohort.length})</h3>
+                    <p class="text-xs text-secondary mb-md">
+                        Preliminary patterns observed in the pilot dataset. These are <strong>not</strong> statistically validated due to sample size limitations.
+                    </p>
+                    <div class="grid grid-cols-2 gap-sm">
+                        <div class="p-sm border rounded-md">
+                            <div class="text-xs font-semibold mb-xs">PSS vs Sleep</div>
+                            <div class="text-xs text-secondary">Students reporting &lt;6h sleep tend to show higher PSS scores. Directional observation only.</div>
+                        </div>
+                        <div class="p-sm border rounded-md">
+                            <div class="text-xs font-semibold mb-xs">PSS vs Screen Time</div>
+                            <div class="text-xs text-secondary">Higher non-academic screen time correlated with elevated perceived stress in this small sample.</div>
+                        </div>
+                        <div class="p-sm border rounded-md">
+                            <div class="text-xs font-semibold mb-xs">PSS vs Academic Pressure</div>
+                            <div class="text-xs text-secondary">Students self-reporting "High" or "Very High" academic pressure cluster toward moderate-to-high PSS.</div>
+                        </div>
+                        <div class="p-sm border rounded-md">
+                            <div class="text-xs font-semibold mb-xs">PSS vs Physical Activity</div>
+                            <div class="text-xs text-secondary">Limited data suggests students with 3+ days of exercise tend to report lower perceived stress.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ML Pipeline Status -->
+                <div class="card mb-md" style="border-left: 4px solid #ec4899;">
+                    <h3 class="font-semibold text-sm mb-xs" style="color:#ec4899;">ML Model Evaluation Benchmark</h3>
+                    <p class="text-xs text-secondary mb-md">
+                        Current pipeline status for academic performance prediction based on lifestyle and PSS features:
+                    </p>
+
+                    <div class="table-container mb-sm">
+                        <table class="table-clean text-xs">
+                            <thead>
+                                <tr>
+                                    <th>Candidate Model</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-semibold">Logistic Regression</td>
+                                    <td><span class="badge badge-warning">Exploratory</span></td>
+                                    <td class="text-xs text-secondary">Baseline candidate. Interpretable coefficients.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-semibold">Random Forest</td>
+                                    <td><span class="badge badge-warning">Exploratory</span></td>
+                                    <td class="text-xs text-secondary">Feature importance ranking. Handles non-linear interactions.</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-semibold">Gradient Boosting / XGBoost</td>
+                                    <td><span class="badge badge-accent">Pending</span></td>
+                                    <td class="text-xs text-secondary">Will evaluate if dataset reaches N≥50 with sufficient class balance.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-xs bg-subtle rounded text-xs text-tertiary">
+                        <strong>Honest Limitation:</strong> With N=${cohort.length}, no model can claim reliable generalization. Current pipeline validates preprocessing, encoding, and PSS scoring correctness. Model selection and final accuracy reporting will follow expanded data collection.
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center gap-sm flex-wrap">
+                    <a href="#/dashboard" class="btn btn-secondary">Student Dashboard</a>
+                    <a href="#/progress" class="btn btn-ghost">Progress Trends</a>
                 </div>
             </div>
         `;

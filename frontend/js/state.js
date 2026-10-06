@@ -266,47 +266,133 @@ const AppState = {
         return this._state.activeExperiment ? { ...this._state.activeExperiment } : null;
     },
     getCompletedExperiments() {
-        return [...this._state.completedExperiments];
+        return [...(this._state.completedExperiments || [])];
+    },
+    getLastCompletedExperiment() {
+        if (this._state.lastCompletedExperiment) return { ...this._state.lastCompletedExperiment };
+        const completed = this._state.completedExperiments || [];
+        return completed.length > 0 ? { ...completed[completed.length - 1] } : null;
     },
     startExperiment(expId) {
+        const latest = this.getLatestAssessment();
+        let baseline = 5.5;
+        if (latest && latest.responses && latest.responses.sleep_hours) {
+            const parsed = parseFloat(latest.responses.sleep_hours);
+            if (!isNaN(parsed)) baseline = parsed;
+        }
+
         this._state.activeExperiment = {
             experimentId: expId,
             startDate: new Date().toISOString(),
+            baselineValue: baseline,
             days: []
         };
+        this._state.lastCompletedExperiment = null;
         this._persist();
     },
     logExperimentDay(data) {
         if (!this._state.activeExperiment) return;
         const currentDays = this._state.activeExperiment.days;
         const dayNumber = currentDays.length + 1;
+        
+        // Prevent negative values
+        const rawVal = parseFloat(data.value ?? data.recordedValue);
+        const safeVal = isNaN(rawVal) ? 0 : Math.max(0, rawVal);
+
         currentDays.push({
             day: dayNumber,
             date: new Date().toISOString(),
-            ...data
+            value: safeVal,
+            targetMet: safeVal > 0
         });
+
         if (currentDays.length >= 7) {
-            this._state.completedExperiments.push({
+            const vals = currentDays.map(d => d.value);
+            const avgDuring = parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1));
+            const baseline = this._state.activeExperiment.baselineValue || 0;
+            const finishedExp = {
                 ...this._state.activeExperiment,
-                completedDate: new Date().toISOString()
-            });
+                duringAverage: avgDuring,
+                completionDate: new Date().toISOString(),
+                delta: parseFloat((avgDuring - baseline).toFixed(1))
+            };
+
+            if (!this._state.completedExperiments) this._state.completedExperiments = [];
+            this._state.completedExperiments.push(finishedExp);
+            this._state.lastCompletedExperiment = finishedExp;
             this._state.activeExperiment = null;
         }
         this._persist();
     },
 
     // Daily Habit Log
-    getHabitLog() { return [...this._state.habitLog]; },
+    getHabitLog() { return [...(this._state.habitLog || [])]; },
     logHabit(entry) {
         const todayStr = new Date().toISOString().split('T')[0];
+        if (!this._state.habitLog) this._state.habitLog = [];
         const existingIdx = this._state.habitLog.findIndex(e => e.date === todayStr);
-        const record = { date: todayStr, timestamp: new Date().toISOString(), ...entry };
+
+        // Sanitize numbers to be non-negative
+        const record = {
+            date: todayStr,
+            timestamp: new Date().toISOString(),
+            sleep_hours: Math.max(0, parseFloat(entry.sleep_hours) || 0),
+            screen_hours: Math.max(0, parseFloat(entry.screen_hours) || 0),
+            study_hours: Math.max(0, parseFloat(entry.study_hours) || 0),
+            exercise_minutes: Math.max(0, parseInt(entry.exercise_minutes, 10) || 0),
+            daily_stress: entry.daily_stress ? Math.max(1, Math.min(5, parseInt(entry.daily_stress, 10))) : 3
+        };
+
         if (existingIdx >= 0) {
             this._state.habitLog[existingIdx] = record;
         } else {
             this._state.habitLog.push(record);
         }
         this._persist();
+        return record;
+    },
+
+    // Before vs After Comparison Helper (GEMINI.md & Progress Trends)
+    getBeforeAfterComparison() {
+        const assessments = this.getAssessments();
+        if (assessments.length === 0) return null;
+        const baseline = assessments[0];
+        const latest = assessments[assessments.length - 1];
+        const habits = this.getHabitLog();
+
+        let avgSleep = 0;
+        let avgScreen = 0;
+        let avgStudy = 0;
+        if (habits.length > 0) {
+            avgSleep = (habits.reduce((acc, h) => acc + (h.sleep_hours || 0), 0) / habits.length).toFixed(1);
+            avgScreen = (habits.reduce((acc, h) => acc + (h.screen_hours || 0), 0) / habits.length).toFixed(1);
+            avgStudy = (habits.reduce((acc, h) => acc + (h.study_hours || 0), 0) / habits.length).toFixed(1);
+        }
+
+        return {
+            hasMultiple: assessments.length > 1,
+            assessmentCount: assessments.length,
+            baseline: {
+                date: baseline.date,
+                pss: baseline.pss_score,
+                pss_level: baseline.pss_level,
+                sleep: baseline.responses?.sleep_hours || '5.5 hrs',
+                screen: baseline.responses?.screen_time || '6.0 hrs',
+                activity: baseline.responses?.physical_activity || '1–2 days',
+                study: baseline.responses?.study_hours || '2.0 hrs'
+            },
+            current: {
+                date: latest.date,
+                pss: latest.pss_score,
+                pss_level: latest.pss_level,
+                sleep: avgSleep > 0 ? `${avgSleep} hrs` : (latest.responses?.sleep_hours || '7.0 hrs'),
+                screen: avgScreen > 0 ? `${avgScreen} hrs` : (latest.responses?.screen_time || '4.0 hrs'),
+                activity: latest.responses?.physical_activity || '3–4 days',
+                study: avgStudy > 0 ? `${avgStudy} hrs` : (latest.responses?.study_hours || '3.0 hrs')
+            },
+            deltaPss: baseline.pss_score - latest.pss_score,
+            improved: latest.pss_score <= baseline.pss_score
+        };
     },
 
     // Reset / Dev clear

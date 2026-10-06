@@ -242,6 +242,7 @@ const App = {
                 main.innerHTML = Screens.renderProgress();
                 setTimeout(() => {
                     Charts.renderStressTrend('progress-curve-canvas', AppState.getAssessments());
+                    Charts.renderLifestyleTrends('lifestyle-trend-canvas', AppState.getHabitLog());
                 }, 60);
                 break;
 
@@ -317,7 +318,9 @@ const App = {
             form.onsubmit = (e) => {
                 e.preventDefault();
                 const formData = new FormData(form);
+                const rawName = formData.get('name') ? formData.get('name').trim() : '';
                 const p = {
+                    name: rawName,
                     age_group: formData.get('age_group'),
                     gender: formData.get('gender'),
                     year: formData.get('year'),
@@ -452,7 +455,12 @@ const App = {
         if (logForm) {
             logForm.onsubmit = (e) => {
                 e.preventDefault();
-                const val = document.getElementById('exp-daily-val').value;
+                const valInput = document.getElementById('exp-daily-val');
+                const val = parseFloat(valInput ? valInput.value : '');
+                if (isNaN(val) || val < 0) {
+                    alert('Please enter a valid non-negative number for the experiment observation.');
+                    return;
+                }
                 AppState.logExperimentDay({ recordedValue: val });
                 this.handleRoute();
             };
@@ -464,11 +472,24 @@ const App = {
         if (form) {
             form.onsubmit = (e) => {
                 e.preventDefault();
+                const sleep = parseFloat(document.getElementById('h-sleep').value);
+                const screen = parseFloat(document.getElementById('h-screen').value);
+                const study = parseFloat(document.getElementById('h-study').value);
+                const exercise = parseInt(document.getElementById('h-exercise').value, 10);
+                const stressRadio = document.querySelector('input[name="daily_stress"]:checked');
+                const stressVal = stressRadio ? parseInt(stressRadio.value, 10) : null;
+
+                if (sleep < 0 || screen < 0 || study < 0 || exercise < 0) {
+                    alert('Negative values are not allowed in daily habit observations.');
+                    return;
+                }
+
                 const entry = {
-                    sleep_hours: parseFloat(document.getElementById('h-sleep').value) || 0,
-                    screen_hours: parseFloat(document.getElementById('h-screen').value) || 0,
-                    study_hours: parseFloat(document.getElementById('h-study').value) || 0,
-                    exercise_minutes: parseInt(document.getElementById('h-exercise').value, 10) || 0
+                    sleep_hours: Math.max(0, isNaN(sleep) ? 0 : sleep),
+                    screen_hours: Math.max(0, isNaN(screen) ? 0 : screen),
+                    study_hours: Math.max(0, isNaN(study) ? 0 : study),
+                    exercise_minutes: Math.max(0, isNaN(exercise) ? 0 : exercise),
+                    daily_stress: stressVal && stressVal >= 1 && stressVal <= 5 ? stressVal : null
                 };
                 AppState.logHabit(entry);
                 this.handleRoute();
