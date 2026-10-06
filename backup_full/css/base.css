@@ -1,0 +1,240 @@
+/* ============================================================
+   PsychHealth — Design Tokens & Base Styles
+   
+   Design direction: Clinical clarity, not decorative.
+   Inspired by health-tech dashboards and academic platforms.
+   
+   Palette: Off-white canvas, sharp slate text, teal-blue accent.
+   Teal (#0d9488) was chosen deliberately — it reads as health/
+   wellness without being the generic SaaS blue or AI-purple.
+   ============================================================ */
+
+/* Reset */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* --- Light Theme (default) --- */
+:root {
+    --canvas: #fafafa;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --subtle: #f4f4f5;
+
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+
+    --text-1: #18181b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --text-4: #a1a1aa;
+
+    --accent: #0d9488;
+    --accent-light: #ccfbf1;
+    --accent-border: #99f6e4;
+    --accent-text: #0f766e;
+
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --green-border: #bbf7d0;
+
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --amber-border: #fde68a;
+
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --red-border: #fecaca;
+
+    --blue: #2563eb;
+    --blue-light: #dbeafe;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
+
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+
+    --header-h: 56px;
+    --max-w: 720px;
+    --max-w-wide: 1080px;
+
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* --- Dark Theme --- */
+[data-theme="dark"] {
+    --canvas: #09090b;
+    --surface: #18181b;
+    --surface-raised: #1f1f23;
+    --subtle: #27272a;
+
+    --border: #27272a;
+    --border-strong: #3f3f46;
+
+    --text-1: #fafafa;
+    --text-2: #a1a1aa;
+    --text-3: #71717a;
+    --text-4: #52525b;
+
+    --accent: #2dd4bf;
+    --accent-light: rgba(45, 212, 191, .1);
+    --accent-border: rgba(45, 212, 191, .25);
+    --accent-text: #5eead4;
+
+    --green: #22c55e;
+    --green-light: rgba(34,197,94,.12);
+    --green-border: rgba(34,197,94,.3);
+
+    --amber: #f59e0b;
+    --amber-light: rgba(245,158,11,.12);
+    --amber-border: rgba(245,158,11,.3);
+
+    --red: #ef4444;
+    --red-light: rgba(239,68,68,.12);
+    --red-border: rgba(239,68,68,.3);
+
+    --blue: #3b82f6;
+    --blue-light: rgba(59,130,246,.12);
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.2);
+    --shadow-md: 0 4px 8px rgba(0,0,0,.3);
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font);
+    background: var(--canvas);
+    color: var(--text-1);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    transition: background .15s ease, color .15s ease;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- Header --- */
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+    max-width: var(--max-w-wide);
+    margin: 0 auto;
+    height: 100%;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.header-brand {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--accent-text);
+    text-decoration: none;
+    letter-spacing: -.02em;
+    flex-shrink: 0;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    overflow-x: auto;
+}
+
+.header-nav a {
+    font-size: .825rem;
+    font-weight: 500;
+    color: var(--text-3);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    white-space: nowrap;
+    transition: color .12s, background .12s;
+}
+
+.header-nav a:hover {
+    color: var(--text-1);
+    background: var(--subtle);
+}
+
+.header-nav a.active {
+    color: var(--accent-text);
+    background: var(--accent-light);
+    font-weight: 600;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-3);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color .12s, border-color .12s, background .12s;
+}
+
+.btn-icon:hover {
+    color: var(--text-1);
+    border-color: var(--border-strong);
+    background: var(--subtle);
+}
+
+/* --- Main Container --- */
+.main-container {
+    flex: 1;
+    max-width: var(--max-w);
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+}
+
+.main-container.wide {
+    max-width: var(--max-w-wide);
+}
+
+/* --- Typography --- */
+h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -.025em; line-height: 1.2; color: var(--text-1); }
+h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.3; color: var(--text-1); }
+h3 { font-size: 1rem; font-weight: 600; letter-spacing: -.01em; line-height: 1.35; color: var(--text-1); }
+p { color: var(--text-2); }
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-nav { display: none; }
+    .main-container { padding: 20px 16px 48px; }
+}
