@@ -464,67 +464,10 @@ const App = {
             };
         }
 
-        // CSV Export functionality
-        const btnExport = document.getElementById('btn-export-cohort-csv');
-        if (btnExport) {
-            btnExport.onclick = () => {
-                const cohort = DATA.cohortResponses;
-                const headers = ['ID', 'Age', 'Gender', 'Course', 'CGPA', 'PSS_Score', 'PSS_Level', 'Sleep', 'Screen', 'Primary_Stressor'];
-                const rows = cohort.map(c => [
-                    c.id,
-                    `"${c.age}"`,
-                    `"${c.gender}"`,
-                    `"${c.course}"`,
-                    `"${c.cgpa}"`,
-                    c.pss_score,
-                    `"${c.pss_level}"`,
-                    `"${c.sleep}"`,
-                    `"${c.screen}"`,
-                    `"${c.source}"`
-                ]);
-                const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement('a');
-                link.setAttribute('href', encodedUri);
-                link.setAttribute('download', `psychhealth_cohort_n16_${new Date().toISOString().slice(0, 10)}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
+        // Initialize full EDA Dashboard with Chart.js and N=234 cohort analytics
+        if (window.DashboardEDA && typeof DashboardEDA.init === 'function') {
+            DashboardEDA.init();
         }
-
-        // Search & Filter in Cohort Table
-        const searchInput = document.getElementById('cohort-search');
-        const filterSelect = document.getElementById('cohort-filter-level');
-        const countLabel = document.getElementById('cohort-count-label');
-        const rows = document.querySelectorAll('#cohort-data-table tbody tr');
-
-        const filterTable = () => {
-            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-            const selectedLevel = filterSelect ? filterSelect.value : 'All';
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                const level = row.dataset.level || '';
-                const searchData = row.dataset.search || '';
-                const matchesLevel = (selectedLevel === 'All' || level === selectedLevel);
-                const matchesSearch = (!query || searchData.includes(query) || row.textContent.toLowerCase().includes(query));
-
-                if (matchesLevel && matchesSearch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            if (countLabel) {
-                countLabel.textContent = `Displaying ${visibleCount} of ${rows.length} students`;
-            }
-        };
-
-        if (searchInput) searchInput.oninput = filterTable;
-        if (filterSelect) filterSelect.onchange = filterTable;
     },
 
     bindConsentEvents() {
@@ -977,6 +920,8 @@ const App = {
         requestAnimationFrame(step);
     }
 };
+
+window.App = App;
 
 // Start application on DOM ready or immediately if already loaded
 if (document.readyState === 'loading') {

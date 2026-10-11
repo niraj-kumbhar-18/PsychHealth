@@ -4,3 +4,4 @@ __pycache__/
 backend/psychhealth_backup.db
 .DS_Store
 Thumbs.db
+dashboard*.html
