@@ -114,11 +114,11 @@ const Screens = {
                             </button>
                         </div>
                     ` : `
-                        <a href="#/login" class="btn btn-primary btn-lg btn-block mb-xs" style="min-height: 52px; font-size: 1rem; border-radius: 12px;">
-                            <span>Student Login →</span>
+                        <a href="#/register" class="btn btn-primary btn-lg btn-block mb-xs" style="min-height: 52px; font-size: 1rem; border-radius: 12px;">
+                            <span>Get Started (New Student) →</span>
                         </a>
-                        <a href="#/register" class="btn btn-secondary btn-block text-sm" style="min-height: 44px; border-radius: 10px;">
-                            <span>Register New Student Account</span>
+                        <a href="#/login" class="btn btn-secondary btn-block text-sm" style="min-height: 44px; border-radius: 10px;">
+                            <span>Sign In to Existing Account</span>
                         </a>
                         <div class="welcome-caption mt-xs">A Student Research Assessment Platform</div>
                     `}
@@ -166,7 +166,8 @@ const Screens = {
                     </form>
 
                     <div class="p-xs bg-subtle rounded text-xs text-tertiary mt-md text-center">
-                        Returning Demo Account: ID <code class="font-mono font-bold text-accent">STU-101</code> · Password <code class="font-mono font-bold text-accent">pass123</code>
+                        <div>Returning Demo Account: ID <code class="font-mono font-bold text-accent">STU-101</code> · Password <code class="font-mono font-bold text-accent">pass123</code></div>
+                        <button type="button" id="btn-fill-demo" class="btn btn-ghost btn-xs text-accent mt-xs" style="text-decoration: underline; cursor: pointer;">Auto-fill Demo Credentials</button>
                     </div>
                 </div>
 

@@ -107,14 +107,13 @@ const AppState = {
             this._persistRegistry();
         }
 
-        // Restore active user session
+        // Restore active user session if previously logged in
         const activeId = sessionStorage.getItem(this.ACTIVE_KEY) || localStorage.getItem(this.ACTIVE_KEY);
         if (activeId && this._users[activeId]) {
             this._activeStudentId = activeId;
         } else {
-            // Default to demo student if present, or null
-            this._activeStudentId = 'STU-101';
-            this._setActiveSession('STU-101');
+            // Fresh visitor - nobody is logged in yet!
+            this._activeStudentId = null;
         }
     },
 

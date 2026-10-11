@@ -386,6 +386,16 @@ const App = {
                 }
             };
         }
+
+        const btnFillDemo = document.getElementById('btn-fill-demo');
+        if (btnFillDemo) {
+            btnFillDemo.onclick = () => {
+                const idInput = document.getElementById('login-student-id');
+                const pwdInput = document.getElementById('login-password');
+                if (idInput) idInput.value = 'STU-101';
+                if (pwdInput) pwdInput.value = 'pass123';
+            };
+        }
     },
 
     bindRegisterEvents() {
