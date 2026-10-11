@@ -90,8 +90,21 @@ const App = {
 
         // Update profile badge
         const sub = document.getElementById('sidebar-profile-sub');
+        const activeId = AppState.getActiveStudentId();
         if (sub) {
-            sub.textContent = p.course ? `${p.course} · ${p.year || 'Student'}` : 'Active · Anonymous';
+            sub.textContent = AppState.isLoggedIn() ? (p.course ? `${p.course} (${activeId})` : `Active (${activeId})`) : 'Not Logged In';
+        }
+        const partTitle = document.querySelector('.participant-title');
+        if (partTitle) {
+            partTitle.textContent = AppState.isLoggedIn() ? (p.name || 'Student Account') : 'Guest Session';
+        }
+        const partBadge = document.getElementById('sidebar-participant');
+        if (partBadge) {
+            partBadge.style.cursor = 'pointer';
+            partBadge.setAttribute('title', AppState.isLoggedIn() ? 'View / Edit Student Profile' : 'Log In to Account');
+            partBadge.onclick = () => {
+                window.location.hash = AppState.isLoggedIn() ? '#/profile' : '#/login';
+            };
         }
 
         nav.innerHTML = `
@@ -103,6 +116,10 @@ const App = {
             <a href="#/pss" class="sidebar-link" data-route="pss">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 <span>Take PSS Assessment</span>
+            </a>
+            <a href="#/profile" class="sidebar-link" data-route="profile">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>Student Profile</span>
             </a>
 
             <div class="nav-section-title mt-xs">Insights</div>
@@ -133,20 +150,39 @@ const App = {
                 <span>Progress Trends</span>
             </a>
 
-            <div class="nav-section-title mt-xs">Research (Avishkar)</div>
+            <div class="nav-section-title mt-xs">Administration</div>
             <a href="#/researcher" class="sidebar-link" data-route="researcher">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>Pilot Cohort (N=16)</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Research Portal (Admin)</span>
             </a>
-            <a href="#/methodology" class="sidebar-link" data-route="methodology">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
-                <span>Methodology &amp; PSS-10</span>
-            </a>
+
+            <div class="nav-section-title mt-xs">Account</div>
+            ${AppState.isLoggedIn() ? `
+                <a href="#/login" class="sidebar-link" id="btn-sidebar-logout" style="color: #ef4444;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Log Out (${AppState.getActiveStudentId()})</span>
+                </a>
+            ` : `
+                <a href="#/login" class="sidebar-link" data-route="login">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    <span>Student Login</span>
+                </a>
+                <a href="#/register" class="sidebar-link" data-route="register">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                    <span>Register New</span>
+                </a>
+            `}
         `;
 
         // Automatically close mobile drawer when any link is clicked
         nav.querySelectorAll('a').forEach(link => {
-            link.onclick = () => {
+            link.onclick = (e) => {
+                if (link.id === 'btn-sidebar-logout') {
+                    e.preventDefault();
+                    AppState.logoutStudent();
+                    window.location.hash = '#/login';
+                    return;
+                }
                 const sidebar = document.getElementById('app-sidebar');
                 const backdrop = document.getElementById('sidebar-backdrop');
                 if (sidebar) sidebar.classList.remove('open');
@@ -159,7 +195,31 @@ const App = {
     handleRoute() {
         const rawHash = window.location.hash.slice(1);
         let route = rawHash.startsWith('/') ? rawHash.slice(1) : rawHash;
-        if (!route) route = 'landing';
+
+        // Smart route default for Logged in vs Logged out user
+        if (!route) {
+            if (AppState.isLoggedIn()) {
+                window.location.hash = '#/dashboard';
+                return;
+            } else {
+                route = 'landing';
+            }
+        }
+
+        // Protected routes check
+        const protectedRoutes = ['dashboard', 'pss', 'lifestyle', 'academic', 'support', 'processing', 'results', 'plan', 'tracking', 'progress', 'simulator', 'profile'];
+        if (protectedRoutes.includes(route) && !AppState.isLoggedIn()) {
+            window.location.hash = '#/login';
+            return;
+        }
+
+        // Keep pss question in valid range when entering assessment
+        if (route === 'pss') {
+            if (!Screens.pssCurrentQuestion || Screens.pssCurrentQuestion < 1 || Screens.pssCurrentQuestion > 10) {
+                Screens.pssCurrentQuestion = 1;
+            }
+        }
+
         this.currentRoute = route;
 
         const main = document.getElementById('main');
@@ -173,10 +233,22 @@ const App = {
             case 'landing':
             case '':
                 main.innerHTML = Screens.renderSplash();
+                this.bindSplashEvents();
+                break;
+
+            case 'login':
+                main.innerHTML = Screens.renderLogin();
+                this.bindLoginEvents();
+                break;
+
+            case 'register':
+                main.innerHTML = Screens.renderRegister();
+                this.bindRegisterEvents();
                 break;
 
             case 'onboarding':
                 main.innerHTML = Screens.renderOnboarding();
+                this.bindOnboardingEvents();
                 break;
 
             case 'consent':
@@ -191,6 +263,7 @@ const App = {
 
             case 'dashboard':
                 main.innerHTML = Screens.renderDashboard();
+                this.bindDashboardEvents();
                 break;
 
             case 'pss':
@@ -215,13 +288,12 @@ const App = {
 
             case 'processing':
                 main.innerHTML = Screens.renderProcessing();
-                setTimeout(() => {
-                    window.location.hash = '#/results';
-                }, 1600);
+                this.animateProcessingStages();
                 break;
 
             case 'results':
                 main.innerHTML = Screens.renderResults();
+                this.animateGaugeCounter();
                 break;
 
             case 'recommendations':
@@ -253,11 +325,12 @@ const App = {
 
             case 'researcher':
                 main.innerHTML = Screens.renderResearcher();
+                this.bindResearcherEvents();
                 break;
 
             case 'methodology':
-                main.innerHTML = Screens.renderMethodology();
-                break;
+                window.location.hash = '#/researcher';
+                return;
 
             default:
                 window.location.hash = '#/';
@@ -279,6 +352,179 @@ const App = {
     },
 
     /* --- Event Bindings --- */
+
+    bindSplashEvents() {
+        const btnLogout = document.getElementById('btn-splash-logout');
+        if (btnLogout) {
+            btnLogout.onclick = () => {
+                AppState.logoutStudent();
+                window.location.hash = '#/login';
+            };
+        }
+    },
+
+    bindLoginEvents() {
+        const form = document.getElementById('form-student-login');
+        if (form) {
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const idInput = document.getElementById('login-student-id');
+                const pwdInput = document.getElementById('login-password');
+                const errDiv = document.getElementById('login-error-msg');
+
+                const sid = idInput ? idInput.value.trim() : '';
+                const pwd = pwdInput ? pwdInput.value.trim() : '';
+
+                const res = await AppState.loginStudent(sid, pwd);
+                if (res.success) {
+                    window.location.hash = '#/dashboard';
+                } else {
+                    if (errDiv) {
+                        errDiv.textContent = res.message || 'Invalid Student ID or password.';
+                        errDiv.style.display = 'block';
+                    }
+                }
+            };
+        }
+    },
+
+    bindRegisterEvents() {
+        const form = document.getElementById('form-student-register');
+        if (form) {
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const sid = formData.get('student_id');
+                const pwd = formData.get('password');
+                const name = formData.get('name');
+                const errDiv = document.getElementById('reg-error-msg');
+
+                const profileData = {
+                    name: name,
+                    course: formData.get('course'),
+                    year: formData.get('year'),
+                    gender: formData.get('gender'),
+                    age_group: formData.get('age_group'),
+                    academic_performance: formData.get('academic_performance')
+                };
+
+                const res = AppState.registerStudent(sid, pwd, profileData);
+                if (res.success) {
+                    Screens.onboardingStep = 1;
+                    Screens.pssCurrentQuestion = 1;
+                    window.location.hash = '#/onboarding';
+                } else {
+                    if (errDiv) {
+                        errDiv.textContent = res.message || 'Registration failed.';
+                        errDiv.style.display = 'block';
+                    }
+                }
+            };
+        }
+    },
+
+    bindDashboardEvents() {
+        const btnLogout = document.getElementById('btn-dash-logout');
+        if (btnLogout) {
+            btnLogout.onclick = () => {
+                AppState.logoutStudent();
+                window.location.hash = '#/login';
+            };
+        }
+    },
+
+    bindResearcherEvents() {
+        // Admin Login Form
+        const formLogin = document.getElementById('form-admin-login');
+        if (formLogin) {
+            formLogin.onsubmit = (e) => {
+                e.preventDefault();
+                const keyInput = document.getElementById('admin-key-input');
+                const errDiv = document.getElementById('admin-login-error');
+                const val = keyInput ? keyInput.value.trim() : '';
+                // Accepted passcodes: admin123, admin, research2026
+                if (val === 'admin123' || val === 'admin' || val === 'research2026') {
+                    AppState.setAdminAuthenticated(true);
+                    this.handleRoute();
+                } else {
+                    if (errDiv) errDiv.style.display = 'block';
+                    if (keyInput) keyInput.focus();
+                }
+            };
+            return;
+        }
+
+        // Authenticated Researcher Portal Controls
+        const btnLogout = document.getElementById('btn-admin-logout');
+        if (btnLogout) {
+            btnLogout.onclick = () => {
+                AppState.setAdminAuthenticated(false);
+                this.handleRoute();
+            };
+        }
+
+        // CSV Export functionality
+        const btnExport = document.getElementById('btn-export-cohort-csv');
+        if (btnExport) {
+            btnExport.onclick = () => {
+                const cohort = DATA.cohortResponses;
+                const headers = ['ID', 'Age', 'Gender', 'Course', 'CGPA', 'PSS_Score', 'PSS_Level', 'Sleep', 'Screen', 'Primary_Stressor'];
+                const rows = cohort.map(c => [
+                    c.id,
+                    `"${c.age}"`,
+                    `"${c.gender}"`,
+                    `"${c.course}"`,
+                    `"${c.cgpa}"`,
+                    c.pss_score,
+                    `"${c.pss_level}"`,
+                    `"${c.sleep}"`,
+                    `"${c.screen}"`,
+                    `"${c.source}"`
+                ]);
+                const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement('a');
+                link.setAttribute('href', encodedUri);
+                link.setAttribute('download', `psychhealth_cohort_n16_${new Date().toISOString().slice(0, 10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+        }
+
+        // Search & Filter in Cohort Table
+        const searchInput = document.getElementById('cohort-search');
+        const filterSelect = document.getElementById('cohort-filter-level');
+        const countLabel = document.getElementById('cohort-count-label');
+        const rows = document.querySelectorAll('#cohort-data-table tbody tr');
+
+        const filterTable = () => {
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const selectedLevel = filterSelect ? filterSelect.value : 'All';
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const level = row.dataset.level || '';
+                const searchData = row.dataset.search || '';
+                const matchesLevel = (selectedLevel === 'All' || level === selectedLevel);
+                const matchesSearch = (!query || searchData.includes(query) || row.textContent.toLowerCase().includes(query));
+
+                if (matchesLevel && matchesSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (countLabel) {
+                countLabel.textContent = `Displaying ${visibleCount} of ${rows.length} students`;
+            }
+        };
+
+        if (searchInput) searchInput.oninput = filterTable;
+        if (filterSelect) filterSelect.onchange = filterTable;
+    },
 
     bindConsentEvents() {
         const agreeCheckbox = document.getElementById('consent-agree');
@@ -334,6 +580,57 @@ const App = {
         }
     },
 
+    bindOnboardingEvents() {
+        const nextBtn = document.getElementById('btn-onboard-next');
+        const backBtn = document.getElementById('btn-onboard-back');
+        const cards = document.querySelectorAll('.pillar-card');
+        const dots = document.querySelectorAll('.step-dot');
+
+        if (nextBtn) {
+            nextBtn.onclick = () => {
+                const currentStep = Screens.onboardingStep || 1;
+                if (currentStep < 3) {
+                    Screens.onboardingStep = currentStep + 1;
+                    this.handleRoute();
+                } else {
+                    Screens.onboardingStep = 1;
+                    window.location.hash = '#/consent';
+                }
+            };
+        }
+
+        if (backBtn) {
+            backBtn.onclick = () => {
+                const currentStep = Screens.onboardingStep || 1;
+                if (currentStep > 1) {
+                    Screens.onboardingStep = currentStep - 1;
+                    this.handleRoute();
+                } else {
+                    window.location.hash = '#/landing';
+                }
+            };
+        }
+
+        cards.forEach(card => {
+            card.style.cursor = 'pointer';
+            card.onclick = () => {
+                const s = parseInt(card.dataset.step, 10);
+                if (s && s >= 1 && s <= 3) {
+                    Screens.onboardingStep = s;
+                    this.handleRoute();
+                }
+            };
+        });
+
+        dots.forEach((dot, idx) => {
+            dot.style.cursor = 'pointer';
+            dot.onclick = () => {
+                Screens.onboardingStep = idx + 1;
+                this.handleRoute();
+            };
+        });
+    },
+
     bindPSSEvents() {
         const qIndex = Screens.pssCurrentQuestion;
         const options = document.querySelectorAll('#pss-radio-options .radio-card');
@@ -342,23 +639,45 @@ const App = {
 
         options.forEach(card => {
             card.onclick = () => {
+                if (this._advancingPSS) return;
+
                 options.forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
+
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio) radio.checked = true;
 
                 const val = parseInt(card.dataset.val, 10);
                 AppState.setAssessmentField(`pss_q${qIndex}`, val);
 
                 if (nextBtn) nextBtn.disabled = false;
 
-                // Smooth auto-advance after 180ms
+                // Visually update the active indicator dot
+                const dots = document.querySelectorAll('.dot-indicators .dot');
+                if (dots && dots[qIndex - 1]) {
+                    dots[qIndex - 1].classList.add('done');
+                }
+
+                // Smooth auto-advance after 260ms visual feedback
+                this._advancingPSS = true;
                 setTimeout(() => {
-                    this.advancePSS();
-                }, 190);
+                    if (Screens.pssCurrentQuestion < 10) {
+                        Screens.pssCurrentQuestion++;
+                        this.handleRoute();
+                    } else {
+                        window.location.hash = '#/lifestyle';
+                    }
+                    setTimeout(() => {
+                        this._advancingPSS = false;
+                    }, 120);
+                }, 260);
             };
         });
 
         if (nextBtn) {
-            nextBtn.onclick = () => this.advancePSS();
+            nextBtn.onclick = () => {
+                this.advancePSS();
+            };
         }
 
         if (prevBtn) {
@@ -372,12 +691,23 @@ const App = {
     },
 
     advancePSS() {
+        if (this._advancingPSS) return;
+        const qIndex = Screens.pssCurrentQuestion;
+        const val = AppState.getAssessmentField(`pss_q${qIndex}`);
+        if (val === null || val === undefined) {
+            return;
+        }
+
+        this._advancingPSS = true;
         if (Screens.pssCurrentQuestion < 10) {
             Screens.pssCurrentQuestion++;
             this.handleRoute();
         } else {
             window.location.hash = '#/lifestyle';
         }
+        setTimeout(() => {
+            this._advancingPSS = false;
+        }, 120);
     },
 
     bindLifestyleEvents() {
@@ -588,6 +918,33 @@ const App = {
         setTimeout(() => {
             window.location.hash = '#/results';
         }, 3650);
+    },
+
+    animateGaugeCounter() {
+        const counter = document.getElementById('gauge-score-counter');
+        const latest = AppState.getLatestAssessment();
+        if (!counter || !latest) return;
+
+        const target = latest.pss_score;
+        let current = 0;
+        const duration = 2000;
+        const startTime = performance.now();
+
+        const step = (timestamp) => {
+            const elapsed = timestamp - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            current = Math.round(easeOut * target);
+            counter.textContent = current;
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                counter.textContent = target;
+            }
+        };
+
+        requestAnimationFrame(step);
     }
 };
 

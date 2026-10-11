@@ -341,7 +341,7 @@ const DATA = {
         ]
     },
 
-    /* --- Real Cohort Responses (N=16 from SPPU Pune survey) --- */
+    /* --- Real Cohort Responses (N=16 pilot survey) --- */
     cohortResponses: [
         { id: "PH-001", age: "21–23", gender: "Male", year: "Third Year", course: "B.Sc. Computer Science", cgpa: "8.0–8.9", pss_score: 22, pss_level: "Moderate", sleep: "6–7 hours", screen: "2–4 hours", pressure: "Low", source: "Deadlines/workload" },
         { id: "PH-002", age: "18–20", gender: "Male", year: "Third Year", course: "B.Sc. Computer Science", cgpa: "7.0–7.9", pss_score: 19, pss_level: "Moderate", sleep: "5–6 hours", screen: "4–6 hours", pressure: "Moderate", source: "Deadlines/workload" },

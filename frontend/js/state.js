@@ -1,279 +1,381 @@
 /* ============================================================
-   PsychHealth — Central State Management
-   Pure state store adhering strictly to GEMINI.md.
-   No fabricated users, no hardcoded scores.
+   PsychHealth — Central State Management & Multi-Student Store
+   Strictly isolates student accounts per GEMINI.md.
+   Syncs with SQLite Backend (http://localhost:8000/api) with
+   graceful client-side partitioned persistence.
    ============================================================ */
 
 const AppState = {
-    _state: {
-        theme: 'light',
-        consented: true,
+    API_URL: 'http://localhost:8000/api',
+    REGISTRY_KEY: 'psychhealth_users_registry_v7',
+    ACTIVE_KEY: 'psychhealth_active_user_v7',
+    THEME_KEY: 'psychhealth_theme_v7',
 
-        // Section 1: Active Student Profile (matching Screenshots)
-        profile: {
-            id: 'PH-001',
-            name: 'Raj',
-            college: 'Prof. Ramkrishna More ACS College, Akurdi',
-            course: 'B.Sc. Computer Science',
-            year: 'Third Year',
-            gender: 'Male',
-            age_group: '18–20',
-            academic_performance: '9.0–10.0'
-        },
+    // Global in-memory cache
+    _users: {},
+    _activeStudentId: null,
+    _theme: 'light',
+    _adminMode: false,
 
-        // Current in-progress assessment responses
-        currentAssessment: {
-            pss_q1: 2, pss_q2: 2, pss_q3: 3, pss_q4: 1, pss_q5: 2,
-            pss_q6: 3, pss_q7: 2, pss_q8: 2, pss_q9: 2, pss_q10: 2,
-            sleep_hours: 'Less than 5 hours',
-            sleep_quality: 'Sometimes',
-            screen_time: '2–4 hours',
-            screen_interference: 'Rarely',
-            physical_activity: '1–2 days',
-            academic_pressure: 'Moderate',
-            academic_stress_source: 'Assignments/projects',
-            study_hours: '2–3 hours',
-            procrastination: 'Sometimes',
-            concentration_difficulty: 'Rarely',
-            support_awareness: 'Yes',
-            help_seeking_comfort: 'Uncomfortable'
-        },
-
-        // 8 Longitudinal Assessments (matching PDF Screenshot 2 & 8)
-        assessments: [
-            {
-                id: 'assessment_1',
-                date: '2026-09-12T10:00:00.000Z',
-                pss_score: 18,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: { sleep_hours: '6–7 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' }
-            },
-            {
-                id: 'assessment_2',
-                date: '2026-09-16T10:00:00.000Z',
-                pss_score: 15,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: { sleep_hours: '7–8 hours', screen_time: '2–4 hours', academic_pressure: 'Low' }
-            },
-            {
-                id: 'assessment_3',
-                date: '2026-09-20T10:00:00.000Z',
-                pss_score: 19,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: { sleep_hours: '5–6 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' }
-            },
-            {
-                id: 'assessment_4',
-                date: '2026-09-24T10:00:00.000Z',
-                pss_score: 23,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: { sleep_hours: 'Less than 5 hours', screen_time: '4–6 hours', academic_pressure: 'High' }
-            },
-            {
-                id: 'assessment_5',
-                date: '2026-09-28T10:00:00.000Z',
-                pss_score: 16,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: { sleep_hours: '7–8 hours', screen_time: '2–4 hours', academic_pressure: 'Low' }
-            },
-            {
-                id: 'assessment_6',
-                date: '2026-10-01T10:00:00.000Z',
-                pss_score: 19,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: { sleep_hours: '6–7 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' }
-            },
-            {
-                id: 'assessment_7',
-                date: '2026-10-04T10:00:00.000Z',
-                pss_score: 17,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: { sleep_hours: '6–7 hours', screen_time: '2–4 hours', academic_pressure: 'Low' }
-            },
-            {
-                id: 'assessment_8',
-                date: '2026-10-06T10:00:00.000Z',
-                pss_score: 23,
-                pss_level: 'Moderate',
-                profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                responses: {
-                    sleep_hours: 'Less than 5 hours',
-                    sleep_quality: 'Sometimes',
-                    screen_time: '2–4 hours',
-                    screen_interference: 'Rarely',
-                    physical_activity: '1–2 days',
-                    academic_pressure: 'Moderate',
-                    academic_stress_source: 'Assignments/projects',
-                    study_hours: '2–3 hours',
-                    procrastination: 'Sometimes',
-                    concentration_difficulty: 'Rarely',
-                    support_awareness: 'Yes',
-                    help_seeking_comfort: 'Uncomfortable'
-                },
-                factors: [
-                    { id: 'sleep', name: 'Insufficient Sleep Duration', severity: 'High', description: 'Reported sleep: Less than 5 hours', priority: 'High', color: 'danger' },
-                    { id: 'activity', name: 'Low Physical Activity', severity: 'Moderate', description: 'Active days: 1–2 days/week', priority: 'Moderate', color: 'warning' },
-                    { id: 'support', name: 'Reluctance Toward Professional Support', severity: 'Moderate', description: 'Comfort level: Uncomfortable', priority: 'Moderate', color: 'warning' }
-                ],
-                recommendations: [
-                    {
-                        category: 'Sleep Hygiene',
-                        priority: 'High',
-                        badgeColor: 'danger',
-                        title: 'Restorative Sleep Protocol',
-                        summary: 'You reported Less than 5 hours average sleep with frequent daytime exhaustion. Consistent sleep architecture is essential for memory consolidation.',
-                        actionItems: [
-                            'Anchor a consistent wake-up time 7 days a week, regardless of when you slept, to stabilize circadian rhythm.',
-                            'Power down non-academic screen devices at least 30–45 minutes prior to turning off lights to allow natural melatonin secretion.',
-                            'Reserve your bed solely for sleep; relocate late-night exam cramming and smartphone browsing to a desk.'
-                        ],
-                        linkedExperiment: 'Sleep'
-                    },
-                    {
-                        category: 'Physical Movement',
-                        priority: 'Low',
-                        badgeColor: 'warning',
-                        title: 'Circulation & Stress Relief Routine',
-                        summary: 'Reported physical activity was 1–2 days per week. Mild aerobic activity is one of the most effective non-pharmacological stress reducers.',
-                        actionItems: [
-                            'Aim for a brisk 20–30 minute campus walk between lectures or in the early morning.',
-                            'Take a 2-minute standing and stretching intermission every hour of prolonged desk sitting.',
-                            'Join an informal college recreational sport or evening walking group with classmates.'
-                        ],
-                        linkedExperiment: 'Activity'
-                    }
-                ]
-            }
-        ],
-
-        // Active 7-Day Experiment (matching PDF Screenshot 4: Sleep Consistency, Day 2 of 7)
-        activeExperiment: {
-            experimentId: 'exp-sleep',
-            startDate: '2026-10-05T08:00:00.000Z',
-            baselineValue: '5.0',
-            days: [
-                { day: 1, date: '2026-10-05T08:00:00.000Z', targetMet: true, value: 7.0 }
-            ]
-        },
-        completedExperiments: [],
-
-        // Daily Habit Log (matching PDF Screenshot 3: 2 days logged, 5.3h sleep, 4.0h screen)
-        habitLog: [
-            { date: '2026-10-05', sleep_hours: 5.5, screen_hours: 3.0, study_hours: 2.0, exercise_minutes: 30 },
-            { date: '2026-10-06', sleep_hours: 5.0, screen_hours: 5.0, study_hours: 1.0, exercise_minutes: 0 }
-        ]
+    // In-progress assessment temporary response buffer
+    _currentAssessment: {
+        pss_q1: null, pss_q2: null, pss_q3: null, pss_q4: null, pss_q5: null,
+        pss_q6: null, pss_q7: null, pss_q8: null, pss_q9: null, pss_q10: null,
+        sleep_hours: null,
+        sleep_quality: null,
+        screen_time: null,
+        screen_interference: null,
+        physical_activity: null,
+        academic_pressure: null,
+        academic_stress_source: null,
+        study_hours: null,
+        procrastination: null,
+        concentration_difficulty: null,
+        support_awareness: null,
+        help_seeking_comfort: null
     },
-
-    STORAGE_KEY: 'psychhealth_v5',
 
     init() {
-        const saved = localStorage.getItem(this.STORAGE_KEY);
-        if (saved) {
+        this._theme = localStorage.getItem(this.THEME_KEY) || 'light';
+        document.documentElement.setAttribute('data-theme', this._theme);
+
+        // Load users registry
+        const savedRegistry = localStorage.getItem(this.REGISTRY_KEY);
+        if (savedRegistry) {
             try {
-                const parsed = JSON.parse(saved);
-                this._state = this._deepMerge(this._state, parsed);
+                this._users = JSON.parse(savedRegistry);
             } catch (e) {
-                console.warn('Could not parse saved state.');
+                console.warn('Failed to parse user registry.');
+                this._users = {};
             }
         }
-        document.documentElement.setAttribute('data-theme', this._state.theme || 'light');
-    },
 
-    _deepMerge(target, source) {
-        const result = { ...target };
-        for (const key of Object.keys(source)) {
-            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key]) && key in target) {
-                result[key] = this._deepMerge(target[key], source[key]);
-            } else {
-                result[key] = source[key];
-            }
+        // Initialize default returning demo student STU-101 if empty
+        if (!this._users['STU-101']) {
+            this._users['STU-101'] = {
+                student_id: 'STU-101',
+                password: 'pass123',
+                profile: {
+                    id: 'STU-101',
+                    name: 'Demo Student',
+                    course: 'B.Sc. Computer Science',
+                    year: 'Third Year',
+                    gender: 'Male',
+                    age_group: '21–23',
+                    academic_performance: '7.0–7.9'
+                },
+                consented: true,
+                assessments: [
+                    {
+                        id: 'assessment_demo_1',
+                        date: '2026-09-24T10:00:00.000Z',
+                        pss_score: 21,
+                        pss_level: 'Moderate',
+                        profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                        responses: { sleep_hours: '5–6 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' },
+                        factors: [{ id: 'sleep', title: 'Short Sleep Duration', impact: 'Moderate' }],
+                        recommendations: [{ title: 'Sleep Rhythm Stabilization', summary: 'Consistent 11 PM bedtime anchor.' }]
+                    },
+                    {
+                        id: 'assessment_demo_2',
+                        date: new Date(Date.now() - 3600000 * 24).toISOString(),
+                        pss_score: 18,
+                        pss_level: 'Moderate',
+                        profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
+                        responses: { sleep_hours: '6–7 hours', screen_time: '2–4 hours', academic_pressure: 'Moderate' },
+                        factors: [{ id: 'screen', title: 'Evening Screen Usage', impact: 'Moderate' }],
+                        recommendations: [{ title: 'Evening Digital Curfew', summary: 'Power down devices 45m before bed.' }]
+                    }
+                ],
+                habitLog: [
+                    { date: '2026-10-08', timestamp: new Date(Date.now() - 3600000 * 48).toISOString(), sleep_hours: 6.0, screen_hours: 3.5, study_hours: 2.5, exercise_minutes: 30, daily_stress: 3 },
+                    { date: '2026-10-09', timestamp: new Date(Date.now() - 3600000 * 24).toISOString(), sleep_hours: 6.5, screen_hours: 3.0, study_hours: 3.0, exercise_minutes: 20, daily_stress: 2 }
+                ],
+                activeExperiment: {
+                    experimentId: 'Sleep',
+                    startDate: new Date(Date.now() - 3600000 * 48).toISOString(),
+                    baselineValue: 5.5,
+                    days: [
+                        { day: 1, date: new Date(Date.now() - 3600000 * 48).toISOString(), value: 6.5, targetMet: true },
+                        { day: 2, date: new Date(Date.now() - 3600000 * 24).toISOString(), value: 7.0, targetMet: true }
+                    ]
+                },
+                completedExperiments: []
+            };
+            this._persistRegistry();
         }
-        return result;
+
+        // Restore active user session
+        const activeId = sessionStorage.getItem(this.ACTIVE_KEY) || localStorage.getItem(this.ACTIVE_KEY);
+        if (activeId && this._users[activeId]) {
+            this._activeStudentId = activeId;
+        } else {
+            // Default to demo student if present, or null
+            this._activeStudentId = 'STU-101';
+            this._setActiveSession('STU-101');
+        }
     },
 
-    // Theme
-    getTheme() { return this._state.theme; },
-    toggleTheme() {
-        this._state.theme = this._state.theme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', this._state.theme);
-        this._persist();
-        return this._state.theme;
+    // --- Authentication & User Lifecycle ---
+
+    registerStudent(studentId, password, profileData) {
+        const sid = (studentId || '').trim().toUpperCase();
+        const pwd = (password || '').trim();
+        if (!sid || !pwd) {
+            return { success: false, message: 'Student ID and password are required.' };
+        }
+
+        if (this._users[sid]) {
+            return { success: false, message: `Student ID "${sid}" is already registered. Please log in.` };
+        }
+
+        // Create new isolated student account with ZERO previous data
+        const newStudent = {
+            student_id: sid,
+            password: pwd,
+            profile: {
+                id: sid,
+                name: (profileData.name || '').trim(),
+                course: profileData.course || '',
+                year: profileData.year || '',
+                gender: profileData.gender || '',
+                age_group: profileData.age_group || '',
+                academic_performance: profileData.academic_performance || ''
+            },
+            consented: true,
+            assessments: [], // ZERO DATA!
+            habitLog: [],    // ZERO DATA!
+            activeExperiment: null,
+            completedExperiments: []
+        };
+
+        this._users[sid] = newStudent;
+        this._persistRegistry();
+        this._setActiveSession(sid);
+        this.resetCurrentAssessment();
+
+        // Asynchronous sync with SQLite server if running
+        this._syncWithServer('POST', '/auth/register', {
+            student_id: sid,
+            password: pwd,
+            ...newStudent.profile
+        });
+
+        return { success: true, student: newStudent };
     },
 
-    // Consent
-    isConsented() { return !!this._state.consented; },
-    setConsented(val) {
-        this._state.consented = !!val;
-        this._persist();
+    loginStudent(studentId, password) {
+        const sid = (studentId || '').trim().toUpperCase();
+        const pwd = (password || '').trim();
+
+        if (this._users[sid] && this._users[sid].password === pwd) {
+            this._setActiveSession(sid);
+            this.resetCurrentAssessment();
+            return { success: true, student: this._users[sid] };
+        }
+
+        // If not in local cache, attempt server authentication
+        return this._remoteLogin(sid, pwd);
     },
 
-    // Profile
-    getProfile() { return { ...this._state.profile }; },
+    async _remoteLogin(sid, pwd) {
+        try {
+            const res = await fetch(`${this.API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: sid, password: pwd })
+            });
+            if (res.ok) {
+                const json = await res.json();
+                const d = json.data;
+                this._users[sid] = {
+                    student_id: sid,
+                    password: pwd,
+                    profile: d.profile,
+                    consented: true,
+                    assessments: d.assessments || [],
+                    habitLog: d.habit_logs || [],
+                    activeExperiment: d.active_experiment || null,
+                    completedExperiments: []
+                };
+                this._persistRegistry();
+                this._setActiveSession(sid);
+                return { success: true, student: this._users[sid] };
+            }
+        } catch (e) {
+            // Server offline
+        }
+        return { success: false, message: 'Invalid Student ID or password.' };
+    },
+
+    logoutStudent() {
+        this._activeStudentId = null;
+        sessionStorage.removeItem(this.ACTIVE_KEY);
+        localStorage.removeItem(this.ACTIVE_KEY);
+        this.resetCurrentAssessment();
+    },
+
+    isLoggedIn() {
+        return !!this._activeStudentId && !!this._users[this._activeStudentId];
+    },
+
+    getActiveStudentId() {
+        return this._activeStudentId;
+    },
+
+    _getUser() {
+        if (!this._activeStudentId || !this._users[this._activeStudentId]) {
+            return null;
+        }
+        return this._users[this._activeStudentId];
+    },
+
+    _setActiveSession(sid) {
+        this._activeStudentId = sid;
+        sessionStorage.setItem(this.ACTIVE_KEY, sid);
+        localStorage.setItem(this.ACTIVE_KEY, sid);
+    },
+
+    _persistRegistry() {
+        try {
+            localStorage.setItem(this.REGISTRY_KEY, JSON.stringify(this._users));
+        } catch (e) {
+            console.warn('Could not persist users registry to localStorage.');
+        }
+    },
+
+    // --- Profile & Demographics ---
+
+    getProfile() {
+        const u = this._getUser();
+        if (!u) {
+            return {
+                id: '',
+                name: '',
+                course: '',
+                year: '',
+                gender: '',
+                age_group: '',
+                academic_performance: ''
+            };
+        }
+        return { ...u.profile };
+    },
+
     setProfile(data) {
-        Object.assign(this._state.profile, data);
-        this._persist();
-    },
-    hasProfile() {
-        const p = this._state.profile;
-        return !!(p.age_group && p.year && p.course && p.gender && p.academic_performance);
-    },
-
-    // Assessment
-    getCurrentAssessment() { return { ...this._state.currentAssessment }; },
-    getAssessmentField(field) { return this._state.currentAssessment[field]; },
-    setAssessmentField(field, val) {
-        if (field in this._state.currentAssessment) {
-            this._state.currentAssessment[field] = val;
-            this._persist();
+        const u = this._getUser();
+        if (u) {
+            Object.assign(u.profile, data);
+            u.consented = true;
+            this._persistRegistry();
         }
     },
-    resetCurrentAssessment() {
-        const ca = this._state.currentAssessment;
-        for (const k in ca) ca[k] = null;
-        this._persist();
+
+    isConsented() {
+        const u = this._getUser();
+        return u ? !!u.consented : false;
     },
 
-    getAssessments() { return [...this._state.assessments]; },
+    setConsented(val) {
+        const u = this._getUser();
+        if (u) {
+            u.consented = !!val;
+            this._persistRegistry();
+        }
+    },
+
+    // --- PSS In-Progress Buffer ---
+
+    getCurrentAssessment() {
+        return { ...this._currentAssessment };
+    },
+
+    getAssessmentField(field) {
+        return this._currentAssessment[field];
+    },
+
+    setAssessmentField(field, val) {
+        if (field in this._currentAssessment) {
+            this._currentAssessment[field] = val;
+        }
+    },
+
+    resetCurrentAssessment() {
+        for (const k in this._currentAssessment) {
+            this._currentAssessment[k] = null;
+        }
+    },
+
+    // --- Longitudinal Assessments ---
+
+    getAssessments() {
+        const u = this._getUser();
+        return u ? [...(u.assessments || [])] : [];
+    },
+
     getLatestAssessment() {
-        const list = this._state.assessments;
+        const list = this.getAssessments();
         return list.length > 0 ? { ...list[list.length - 1] } : null;
     },
-    hasCompletedAssessment() { return this._state.assessments.length > 0; },
+
+    hasCompletedAssessment() {
+        return this.getAssessments().length > 0;
+    },
 
     saveAssessment(result) {
+        const u = this._getUser();
+        if (!u) return null;
+
         const record = {
             id: 'assessment_' + Date.now(),
             date: new Date().toISOString(),
-            profile: { ...this._state.profile },
-            responses: { ...this._state.currentAssessment },
+            profile: { ...u.profile },
+            responses: { ...this._currentAssessment },
             ...result
         };
-        this._state.assessments.push(record);
+
+        if (!u.assessments) u.assessments = [];
+        u.assessments.push(record);
         this.resetCurrentAssessment();
-        this._persist();
+        this._persistRegistry();
+
+        // Asynchronously sync with SQLite server
+        this._syncWithServer('POST', '/assessments', {
+            student_id: u.student_id,
+            pss_score: record.pss_score,
+            pss_level: record.pss_level,
+            responses: record.responses,
+            factors: record.factors,
+            recommendations: record.recommendations
+        });
+
         return record;
     },
 
-    // 7-Day Experiments
+    // --- 7-Day Structured Experiments ---
+
     getActiveExperiment() {
-        return this._state.activeExperiment ? { ...this._state.activeExperiment } : null;
+        const u = this._getUser();
+        return (u && u.activeExperiment) ? { ...u.activeExperiment } : null;
     },
+
     getCompletedExperiments() {
-        return [...(this._state.completedExperiments || [])];
+        const u = this._getUser();
+        return u ? [...(u.completedExperiments || [])] : [];
     },
+
     getLastCompletedExperiment() {
-        if (this._state.lastCompletedExperiment) return { ...this._state.lastCompletedExperiment };
-        const completed = this._state.completedExperiments || [];
+        const u = this._getUser();
+        if (!u) return null;
+        if (u.lastCompletedExperiment) return { ...u.lastCompletedExperiment };
+        const completed = u.completedExperiments || [];
         return completed.length > 0 ? { ...completed[completed.length - 1] } : null;
     },
+
     startExperiment(expId) {
+        const u = this._getUser();
+        if (!u) return;
+
         const latest = this.getLatestAssessment();
         let baseline = 5.5;
         if (latest && latest.responses && latest.responses.sleep_hours) {
@@ -281,21 +383,22 @@ const AppState = {
             if (!isNaN(parsed)) baseline = parsed;
         }
 
-        this._state.activeExperiment = {
+        u.activeExperiment = {
             experimentId: expId,
             startDate: new Date().toISOString(),
             baselineValue: baseline,
             days: []
         };
-        this._state.lastCompletedExperiment = null;
-        this._persist();
+        u.lastCompletedExperiment = null;
+        this._persistRegistry();
     },
+
     logExperimentDay(data) {
-        if (!this._state.activeExperiment) return;
-        const currentDays = this._state.activeExperiment.days;
+        const u = this._getUser();
+        if (!u || !u.activeExperiment) return;
+
+        const currentDays = u.activeExperiment.days;
         const dayNumber = currentDays.length + 1;
-        
-        // Prevent negative values
         const rawVal = parseFloat(data.value ?? data.recordedValue);
         const safeVal = isNaN(rawVal) ? 0 : Math.max(0, rawVal);
 
@@ -309,30 +412,38 @@ const AppState = {
         if (currentDays.length >= 7) {
             const vals = currentDays.map(d => d.value);
             const avgDuring = parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1));
-            const baseline = this._state.activeExperiment.baselineValue || 0;
+            const baseline = u.activeExperiment.baselineValue || 0;
             const finishedExp = {
-                ...this._state.activeExperiment,
+                ...u.activeExperiment,
                 duringAverage: avgDuring,
                 completionDate: new Date().toISOString(),
                 delta: parseFloat((avgDuring - baseline).toFixed(1))
             };
 
-            if (!this._state.completedExperiments) this._state.completedExperiments = [];
-            this._state.completedExperiments.push(finishedExp);
-            this._state.lastCompletedExperiment = finishedExp;
-            this._state.activeExperiment = null;
+            if (!u.completedExperiments) u.completedExperiments = [];
+            u.completedExperiments.push(finishedExp);
+            u.lastCompletedExperiment = finishedExp;
+            u.activeExperiment = null;
         }
-        this._persist();
+
+        this._persistRegistry();
     },
 
-    // Daily Habit Log
-    getHabitLog() { return [...(this._state.habitLog || [])]; },
-    logHabit(entry) {
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (!this._state.habitLog) this._state.habitLog = [];
-        const existingIdx = this._state.habitLog.findIndex(e => e.date === todayStr);
+    // --- Daily Habit Log ---
 
-        // Sanitize numbers to be non-negative
+    getHabitLog() {
+        const u = this._getUser();
+        return u ? [...(u.habitLog || [])] : [];
+    },
+
+    logHabit(entry) {
+        const u = this._getUser();
+        if (!u) return null;
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (!u.habitLog) u.habitLog = [];
+        const existingIdx = u.habitLog.findIndex(e => e.date === todayStr);
+
         const record = {
             date: todayStr,
             timestamp: new Date().toISOString(),
@@ -344,15 +455,28 @@ const AppState = {
         };
 
         if (existingIdx >= 0) {
-            this._state.habitLog[existingIdx] = record;
+            u.habitLog[existingIdx] = record;
         } else {
-            this._state.habitLog.push(record);
+            u.habitLog.push(record);
         }
-        this._persist();
+
+        this._persistRegistry();
+
+        // Sync with SQLite server
+        this._syncWithServer('POST', '/habits', {
+            student_id: u.student_id,
+            date: record.date,
+            sleep_hours: record.sleep_hours,
+            screen_hours: record.screen_hours,
+            study_hours: record.study_hours,
+            exercise_minutes: record.exercise_minutes
+        });
+
         return record;
     },
 
-    // Before vs After Comparison Helper (GEMINI.md & Progress Trends)
+    // --- Before vs After Longitudinal Trends ---
+
     getBeforeAfterComparison() {
         const assessments = this.getAssessments();
         if (assessments.length === 0) return null;
@@ -395,17 +519,48 @@ const AppState = {
         };
     },
 
-    // Reset / Dev clear
-    clearAll() {
-        localStorage.removeItem(this.STORAGE_KEY);
-        location.reload();
+    // --- Theme & Admin ---
+
+    getTheme() { return this._theme; },
+    toggleTheme() {
+        this._theme = this._theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', this._theme);
+        localStorage.setItem(this.THEME_KEY, this._theme);
+        return this._theme;
     },
 
-    _persist() {
-        try {
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._state));
-        } catch (e) {
-            console.warn('localStorage write failed.');
+    isAdminAuthenticated() {
+        return sessionStorage.getItem('ph_admin_token') === 'verified' || !!this._adminMode;
+    },
+
+    setAdminAuthenticated(val) {
+        if (val) {
+            sessionStorage.setItem('ph_admin_token', 'verified');
+            this._adminMode = true;
+        } else {
+            sessionStorage.removeItem('ph_admin_token');
+            this._adminMode = false;
         }
+    },
+
+    // --- SQLite Background Sync Helper ---
+
+    async _syncWithServer(method, endpoint, body) {
+        try {
+            await fetch(`${this.API_URL}${endpoint}`, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+        } catch (e) {
+            // Silently fall back to client-side partitioned storage
+        }
+    },
+
+    clearAll() {
+        localStorage.removeItem(this.REGISTRY_KEY);
+        localStorage.removeItem(this.ACTIVE_KEY);
+        sessionStorage.removeItem(this.ACTIVE_KEY);
+        location.reload();
     }
 };

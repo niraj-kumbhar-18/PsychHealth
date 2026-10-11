@@ -8,6 +8,25 @@ const Screens = {
     pssCurrentQuestion: 1,
     onboardingStep: 1,
 
+    formatRealDateTime(dateStr) {
+        if (!dateStr) return 'Not recorded';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const now = new Date();
+        const isToday = d.toDateString() === now.toDateString();
+        const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (isToday) {
+            return `Today at ${timeStr}`;
+        }
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        if (d.toDateString() === yesterday.toDateString()) {
+            return `Yesterday at ${timeStr}`;
+        }
+        const datePart = d.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+        return `${datePart} at ${timeStr}`;
+    },
+
     /* ------------------------------------------------------------
        SCREEN 1 — Welcome / Landing Screen (Redesigned)
        ------------------------------------------------------------ */
@@ -77,13 +96,200 @@ const Screens = {
                     </h1>
                 </div>
 
-                <!-- Single CTA Bottom -->
+                <!-- CTA Bottom -->
                 <div class="welcome-bottom">
-                    <a href="#/onboarding" class="btn btn-primary btn-lg btn-block" style="min-height: 52px; font-size: 1rem; border-radius: 12px;">
-                        <span>Get Started</span>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    </a>
-                    <div class="welcome-caption">A Student Research Assessment Platform</div>
+                    ${AppState.isLoggedIn() ? `
+                        <div class="p-xs mb-xs text-center" style="background: rgba(13,148,136,0.08); border-radius: 8px;">
+                            <span class="text-xs font-semibold text-accent">Logged in as ${AppState.getProfile().name || 'Student'} (${AppState.getActiveStudentId()})</span>
+                        </div>
+                        <a href="#/dashboard" class="btn btn-primary btn-lg btn-block mb-xs" style="min-height: 50px; font-size: 1rem; border-radius: 12px;">
+                            <span>Go to Dashboard →</span>
+                        </a>
+                        <div class="flex gap-xs mt-xs">
+                            <a href="#/pss" class="btn btn-secondary btn-block text-xs" style="min-height: 40px;">
+                                Take Assessment
+                            </a>
+                            <button type="button" id="btn-splash-logout" class="btn btn-ghost btn-block text-xs" style="min-height: 40px;">
+                                Log Out
+                            </button>
+                        </div>
+                    ` : `
+                        <a href="#/login" class="btn btn-primary btn-lg btn-block mb-xs" style="min-height: 52px; font-size: 1rem; border-radius: 12px;">
+                            <span>Student Login →</span>
+                        </a>
+                        <a href="#/register" class="btn btn-secondary btn-block text-sm" style="min-height: 44px; border-radius: 10px;">
+                            <span>Register New Student Account</span>
+                        </a>
+                        <div class="welcome-caption mt-xs">A Student Research Assessment Platform</div>
+                    `}
+                </div>
+            </div>
+        `;
+    },
+
+    /* ------------------------------------------------------------
+       AUTH SCREEN A — Student Login
+       ------------------------------------------------------------ */
+    renderLogin() {
+        return `
+            <div class="auth-wrap animate-fade-in">
+                <div class="auth-header">
+                    <div class="auth-logo-badge">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    </div>
+                    <h1 class="text-xl font-bold mb-xs">Student Account Login</h1>
+                    <p class="text-xs text-secondary">Sign in to access your personal assessment history and habit logs.</p>
+                </div>
+
+                <div class="card p-lg mb-sm">
+                    <div class="auth-tabs">
+                        <a href="#/login" class="auth-tab-btn active">Sign In</a>
+                        <a href="#/register" class="auth-tab-btn">Register New</a>
+                    </div>
+
+                    <form id="form-student-login">
+                        <div class="form-group mb-sm">
+                            <label class="form-label text-xs block mb-xs" for="login-student-id">Student ID / Roll No</label>
+                            <input type="text" id="login-student-id" name="student_id" class="form-control" placeholder="e.g. STU-101" required autofocus>
+                        </div>
+
+                        <div class="form-group mb-md">
+                            <label class="form-label text-xs block mb-xs" for="login-password">Password</label>
+                            <input type="password" id="login-password" name="password" class="form-control" placeholder="Enter password" required>
+                        </div>
+
+                        <div id="login-error-msg" class="text-xs text-danger font-medium mb-sm" style="display:none;"></div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" style="min-height: 48px;">
+                            <span>Log In to Dashboard →</span>
+                        </button>
+                    </form>
+
+                    <div class="p-xs bg-subtle rounded text-xs text-tertiary mt-md text-center">
+                        Returning Demo Account: ID <code class="font-mono font-bold text-accent">STU-101</code> · Password <code class="font-mono font-bold text-accent">pass123</code>
+                    </div>
+                </div>
+
+                <div class="text-center text-xs text-secondary">
+                    Don't have an account yet? <a href="#/register" class="text-accent font-semibold">Register as New Student →</a>
+                </div>
+            </div>
+        `;
+    },
+
+    /* ------------------------------------------------------------
+       AUTH SCREEN B — Student Registration
+       ------------------------------------------------------------ */
+    renderRegister() {
+        return `
+            <div class="auth-wrap animate-fade-in" style="max-width: 480px;">
+                <div class="auth-header">
+                    <div class="auth-logo-badge">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                    </div>
+                    <h1 class="text-xl font-bold mb-xs">New Student Registration</h1>
+                    <p class="text-xs text-secondary">Create your dedicated student account. All your data is strictly private.</p>
+                </div>
+
+                <div class="card p-lg mb-sm">
+                    <div class="auth-tabs">
+                        <a href="#/login" class="auth-tab-btn">Sign In</a>
+                        <a href="#/register" class="auth-tab-btn active">Register New</a>
+                    </div>
+
+                    <form id="form-student-register">
+                        <div class="font-semibold text-xs text-accent uppercase tracking-wider mb-xs">Step 1 — Credentials</div>
+                        
+                        <div class="form-group mb-xs">
+                            <label class="form-label text-xs block mb-xs" for="reg-student-id">Student ID / Roll No *</label>
+                            <input type="text" id="reg-student-id" name="student_id" class="form-control" placeholder="e.g. STU-202" required>
+                        </div>
+
+                        <div class="form-group mb-xs">
+                            <label class="form-label text-xs block mb-xs" for="reg-name">Full Name / Alias *</label>
+                            <input type="text" id="reg-name" name="name" class="form-control" placeholder="e.g. Rahul Sharma" required>
+                        </div>
+
+                        <div class="form-group mb-md">
+                            <label class="form-label text-xs block mb-xs" for="reg-password">Password *</label>
+                            <input type="password" id="reg-password" name="password" class="form-control" placeholder="Choose a password" required>
+                        </div>
+
+                        <div class="font-semibold text-xs text-accent uppercase tracking-wider mb-xs pt-xs border-t">Step 2 — Academic Context</div>
+
+                        <div class="form-group mb-xs">
+                            <label class="form-label text-xs block mb-xs" for="reg-course">Course / Stream *</label>
+                            <select id="reg-course" name="course" class="form-control" required>
+                                <option value="" disabled selected>Select Course</option>
+                                <option value="B.Sc. Computer Science">B.Sc. Computer Science</option>
+                                <option value="BCA">BCA</option>
+                                <option value="B.Com">B.Com</option>
+                                <option value="B.A.">B.A.</option>
+                                <option value="B.Sc.">B.Sc.</option>
+                                <option value="B.E./B.Tech.">B.E./B.Tech.</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-xs mb-xs">
+                            <div class="form-group">
+                                <label class="form-label text-xs block mb-xs" for="reg-year">Year of Study *</label>
+                                <select id="reg-year" name="year" class="form-control" required>
+                                    <option value="" disabled selected>Select Year</option>
+                                    <option value="First Year">First Year</option>
+                                    <option value="Second Year">Second Year</option>
+                                    <option value="Third Year">Third Year</option>
+                                    <option value="Postgraduate">Postgraduate</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label text-xs block mb-xs" for="reg-performance">Latest CGPA</label>
+                                <select id="reg-performance" name="academic_performance" class="form-control">
+                                    <option value="" disabled selected>Select CGPA</option>
+                                    <option value="9.0–10.0">9.0–10.0</option>
+                                    <option value="8.0–8.9">8.0–8.9</option>
+                                    <option value="7.0–7.9">7.0–7.9</option>
+                                    <option value="6.0–6.9">6.0–6.9</option>
+                                    <option value="5.0–5.9">5.0–5.9</option>
+                                    <option value="Below 5.0">Below 5.0</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-xs mb-md">
+                            <div class="form-group">
+                                <label class="form-label text-xs block mb-xs" for="reg-age">Age Group</label>
+                                <select id="reg-age" name="age_group" class="form-control">
+                                    <option value="18–20">18–20</option>
+                                    <option value="21–23" selected>21–23</option>
+                                    <option value="24 or above">24 or above</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label text-xs block mb-xs" for="reg-gender">Gender</label>
+                                <select id="reg-gender" name="gender" class="form-control">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Non-binary / Other">Non-binary / Other</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="reg-error-msg" class="text-xs text-danger font-medium mb-sm" style="display:none;"></div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" style="min-height: 48px;">
+                            <span>Register &amp; Begin Assessment →</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="text-center text-xs text-secondary">
+                    Already have an account? <a href="#/login" class="text-accent font-semibold">Log In here →</a>
                 </div>
             </div>
         `;
@@ -302,7 +508,6 @@ const Screens = {
 
                 <div class="text-center mb-sm">
                     <h1 class="text-xl font-bold">Create Your Profile</h1>
-                    <span class="text-xs text-tertiary">(Research Context)</span>
                 </div>
 
                 <!-- Avatar Motif -->
@@ -414,17 +619,22 @@ const Screens = {
                     <div class="dash-header">
                         <div>
                             <h1 class="text-2xl font-bold">${greeting}</h1>
-                            <p class="text-sm text-secondary">Track perceived stress, lifestyle covariance, and academic resilience.</p>
+                            <p class="text-sm text-secondary">Student ID: <span class="font-mono font-medium text-primary">${AppState.getActiveStudentId()}</span> · Track perceived stress &amp; academic resilience.</p>
+                        </div>
+                        <div class="flex gap-xs items-center">
+                            <button type="button" id="btn-dash-logout" class="btn btn-ghost btn-sm text-tertiary" title="Log Out" style="border: 1px solid var(--border);">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Log Out
+                            </button>
                         </div>
                     </div>
 
                     <div class="card p-xl mb-lg text-center" style="border-top: 4px solid var(--accent); background: linear-gradient(180deg, rgba(13,148,136,0.05) 0%, var(--surface) 100%);">
                         <span class="badge badge-accent mb-sm">No Active Assessment</span>
-                        <h2 class="text-xl font-bold mb-xs">Welcome to PsychHealth</h2>
+                        <h2 class="text-xl font-bold mb-xs">Welcome to PsychHealth, ${p.name || 'Student'}</h2>
                         <p class="text-secondary max-w-md mx-auto mb-md text-sm">
                             You have not completed an assessment yet. Complete the standardized 10-question PSS-10 questionnaire along with your lifestyle variables to generate personalized recommendations.
                         </p>
-                        <a href="#/onboarding" class="btn btn-primary btn-lg">Start First Assessment →</a>
+                        <a href="#/pss" class="btn btn-primary btn-lg">Start First Assessment →</a>
                     </div>
 
                     <div class="kpi-grid">
@@ -455,13 +665,63 @@ const Screens = {
                     <div>
                         <h1 class="text-2xl font-bold">${greeting}</h1>
                         <p class="text-sm text-secondary">
-                            ${p.course ? `${p.course} · ${p.year || 'Student'}` : 'Participant Overview'} · Last assessed: ${new Date(latest.date).toLocaleDateString()}
+                            ${p.course ? `${p.course} · ${p.year || 'Student'}` : 'Participant Overview'} · Last assessed: <span class="font-medium text-primary">${this.formatRealDateTime(latest.date)}</span>
                         </p>
                     </div>
-                    <div class="flex gap-xs flex-wrap">
+                    <div class="flex gap-xs flex-wrap items-center">
                         <a href="#/pss" class="btn btn-primary btn-sm">Retake Assessment</a>
                         <a href="#/simulator" class="btn btn-secondary btn-sm">What-If Simulator</a>
+                        <button type="button" id="btn-dash-logout" class="btn btn-ghost btn-sm text-tertiary" title="Log Out" style="border: 1px solid var(--border);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Log Out
+                        </button>
                     </div>
+                </div>
+
+                <!-- Quick Actions for Instant Access (Returning User Hub) -->
+                <div class="dash-quick-actions mb-md">
+                    <a href="#/pss" class="quick-action-card highlight">
+                        <div class="quick-action-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                        </div>
+                        <div class="quick-action-content">
+                            <span class="quick-action-title">Take PSS Assessment</span>
+                            <span class="quick-action-desc">Direct 10-question checkup</span>
+                        </div>
+                        <span class="quick-action-arrow">→</span>
+                    </a>
+
+                    <a href="#/tracking" class="quick-action-card">
+                        <div class="quick-action-icon icon-blue">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        </div>
+                        <div class="quick-action-content">
+                            <span class="quick-action-title">Daily Habit Log</span>
+                            <span class="quick-action-desc">Record sleep &amp; screen</span>
+                        </div>
+                        <span class="quick-action-arrow">→</span>
+                    </a>
+
+                    <a href="#/plan" class="quick-action-card">
+                        <div class="quick-action-icon icon-green">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                        </div>
+                        <div class="quick-action-content">
+                            <span class="quick-action-title">7-Day Experiment</span>
+                            <span class="quick-action-desc">Targeted wellness goal</span>
+                        </div>
+                        <span class="quick-action-arrow">→</span>
+                    </a>
+
+                    <a href="#/progress" class="quick-action-card">
+                        <div class="quick-action-icon icon-amber">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                        </div>
+                        <div class="quick-action-content">
+                            <span class="quick-action-title">Progress Trends</span>
+                            <span class="quick-action-desc">Longitudinal curve</span>
+                        </div>
+                        <span class="quick-action-arrow">→</span>
+                    </a>
                 </div>
 
                 <!-- Responsive 1-3 Column KPI Grid with Rich Vibrant Visual Accents -->
@@ -977,31 +1237,67 @@ const Screens = {
                 <div class="dash-header mb-md">
                     <div>
                         <h1 class="text-2xl font-bold">Assessment Report</h1>
-                        <span class="text-xs text-tertiary">Assessed on ${new Date(latest.date).toLocaleDateString()}</span>
+                        <span class="text-xs text-tertiary">Assessed on ${this.formatRealDateTime(latest.date)}</span>
                     </div>
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Home Dashboard</a>
                 </div>
 
-                <div class="card mb-md text-center p-lg">
-                    <div class="text-xs text-tertiary mb-xs">Standardized Cohen PSS-10 Score</div>
-                    <div class="score-number">${latest.pss_score} <span class="score-max">/ 40</span></div>
+                <!-- Half-Circle Speedometer Scoring Gauge -->
+                <div class="gauge-meter-card mb-md">
+                    <div class="text-xs text-tertiary mb-xs font-semibold uppercase tracking-wider">Perceived Stress Assessment (Cohen PSS-10)</div>
                     
-                    <div class="mt-xs mb-sm">
-                        <span class="badge ${levelBadgeClass} text-sm px-md py-xs">${latest.pss_level} Perceived Stress Level</span>
+                    <div class="gauge-container">
+                        <svg class="gauge-svg" viewBox="0 0 320 180">
+                            <!-- Background Arc Track -->
+                            <path d="M 45 145 A 115 115 0 0 1 275 145" fill="none" stroke="var(--subtle)" stroke-width="22" stroke-linecap="round" />
+                            
+                            <!-- Zone 1: Low (0 to 13) Green -->
+                            <path d="M 45 145 A 115 115 0 0 1 100 53" fill="none" stroke="#10b981" stroke-width="16" stroke-linecap="round" opacity="0.9" />
+                            
+                            <!-- Zone 2: Moderate (14 to 26) Amber -->
+                            <path d="M 103 49 A 115 115 0 0 1 217 49" fill="none" stroke="#f59e0b" stroke-width="16" opacity="0.9" />
+                            
+                            <!-- Zone 3: High (27 to 40) Coral Red -->
+                            <path d="M 220 53 A 115 115 0 0 1 275 145" fill="none" stroke="#ef4444" stroke-width="16" stroke-linecap="round" opacity="0.9" />
+                            
+                            <!-- Cohen Scale Calibration Marks & Labels -->
+                            <text x="36" y="165" font-size="11" font-weight="700" fill="var(--text-3)" text-anchor="middle">0</text>
+                            <text x="92" y="38" font-size="11" font-weight="700" fill="#10b981" text-anchor="middle">13</text>
+                            <text x="228" y="38" font-size="11" font-weight="700" fill="#f59e0b" text-anchor="middle">26</text>
+                            <text x="284" y="165" font-size="11" font-weight="700" fill="#ef4444" text-anchor="middle">40</text>
+
+                            <!-- Rotating Needle Indicator Group -->
+                            <g class="gauge-needle-group gauge-needle-calculating" style="--target-angle: ${Math.round(-90 + (Math.max(0, Math.min(40, latest.pss_score)) / 40) * 180)}deg;">
+                                <!-- Needle Pointer -->
+                                <path d="M 157 145 L 159.2 40 L 160.8 40 L 163 145 Z" fill="var(--text-1)" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))" />
+                                <polygon points="157.5,43 160,32 162.5,43" fill="var(--accent)" />
+                                <!-- Central Pivot Hub -->
+                                <circle cx="160" cy="145" r="14" fill="var(--surface)" stroke="var(--accent)" stroke-width="4" />
+                                <circle cx="160" cy="145" r="5" fill="var(--text-1)" />
+                            </g>
+                        </svg>
+
+                        <div class="gauge-readout-overlay">
+                            <div class="gauge-digital-score">
+                                <span id="gauge-score-counter">${latest.pss_score}</span>
+                                <span class="gauge-digital-max">/ 40</span>
+                            </div>
+                            <div class="gauge-status-badge ${latest.pss_level.toLowerCase()}">
+                                <span class="gauge-pulse-dot"></span>
+                                <span>${latest.pss_level} Perceived Stress</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="progress-bar max-w-sm mx-auto mb-xs">
-                        <div class="progress-bar-fill" style="width: ${pssPct}%;"></div>
-                    </div>
-
-                    <div class="scale-legend">
-                        <span><span class="scale-dot" style="background:#16a34a"></span> 0–13 Low</span>
-                        <span><span class="scale-dot" style="background:#d97706"></span> 14–26 Moderate</span>
-                        <span><span class="scale-dot" style="background:#dc2626"></span> 27–40 High</span>
+                    <!-- Scale Legend Tiers -->
+                    <div class="scale-legend mt-sm">
+                        <span><span class="scale-dot" style="background:#10b981"></span> 0–13 Low Stress</span>
+                        <span><span class="scale-dot" style="background:#f59e0b"></span> 14–26 Moderate</span>
+                        <span><span class="scale-dot" style="background:#ef4444"></span> 27–40 High Stress</span>
                     </div>
 
                     <p class="text-xs text-secondary max-w-md mx-auto mt-md">
-                        ${latest.description || 'Your score reflects your self-reported feelings of overload, unpredictability, and perceived coping efficacy during the past month.'}
+                        ${latest.description || 'Standardized Cohen PSS-10 score measuring degree of unpredictability, uncontrollability, and perceived coping efficacy.'}
                     </p>
                 </div>
 
@@ -1255,7 +1551,7 @@ const Screens = {
                     <div class="card mb-lg" style="border-left: 4px solid #16a34a; background: linear-gradient(180deg, rgba(22,163,74,0.05) 0%, var(--surface) 100%);">
                         <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
                             <span class="badge badge-success">Protocol Completed 🎉</span>
-                            <span class="text-xs text-tertiary">Finished ${new Date(lastExp.completionDate).toLocaleDateString()}</span>
+                            <span class="text-xs text-tertiary">Finished ${this.formatRealDateTime(lastExp.completionDate)}</span>
                         </div>
                         <h3 class="font-bold text-base mb-xs">
                             ${experiments.find(e => e.id === lastExp.experimentId)?.title || '7-Day Sleep Experiment'}
@@ -1407,7 +1703,7 @@ const Screens = {
                         <div class="flex flex-col gap-xs mt-sm">
                             ${logs.slice(-7).reverse().map(l => `
                                 <div class="flex items-center justify-between p-xs border-b text-xs">
-                                    <span class="font-medium">${l.date}</span>
+                                    <span class="font-medium">${this.formatRealDateTime(l.timestamp || l.date)}</span>
                                     <span class="text-secondary">
                                         ${l.sleep_hours}h sleep · ${l.screen_hours}h screen · ${l.study_hours}h study · ${l.exercise_minutes}m exercise${l.daily_stress ? ` · Stress: ${l.daily_stress}/5` : ''}
                                     </span>
@@ -1629,165 +1925,257 @@ const Screens = {
     },
 
     /* ------------------------------------------------------------
-       RESEARCHER VIEW — Pilot Cohort (N=16 Dataset)
+       RESEARCHER / ADMIN VIEW — Restricted Portal & Cohort Analysis (N=16)
        ------------------------------------------------------------ */
     renderResearcher() {
+        if (!AppState.isAdminAuthenticated()) {
+            return `
+                <div class="assessment-wrap animate-fade-in" style="max-width: 480px; margin: 40px auto;">
+                    <div class="card p-xl text-center" style="border-top: 4px solid var(--accent); box-shadow: var(--shadow-md);">
+                        <div class="mb-sm flex justify-center">
+                            <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(13,148,136,0.12); display: flex; align-items: center; justify-content: center; color: var(--accent);">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </div>
+                        </div>
+                        <span class="badge badge-accent mb-xs">Restricted Access</span>
+                        <h2 class="text-xl font-bold mb-xs">Admin Research Portal</h2>
+                        <p class="text-xs text-secondary mb-md">
+                            Restricted access for academic researchers, faculty mentors, and project evaluators. Contains raw cohort responses (N=16), statistical covariance matrices, and dataset exports.
+                        </p>
+
+                        <form id="form-admin-login" class="mb-sm">
+                            <div class="mb-sm text-left">
+                                <label class="form-label mb-xs block text-xs" for="admin-key-input">Admin / Researcher Key</label>
+                                <input type="password" id="admin-key-input" class="form-control" placeholder="Enter researcher passcode" autocomplete="current-password" required>
+                            </div>
+                            <div id="admin-login-error" class="text-xs text-danger mb-sm font-medium" style="display: none;">
+                                Invalid key. Please check your passcode.
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block" style="min-height: 44px;">
+                                <span>Unlock Research Portal →</span>
+                            </button>
+                        </form>
+
+                        <div class="p-xs bg-subtle rounded text-xs text-tertiary mb-md">
+                            Demonstration Passcode: <code class="font-mono font-bold text-accent">admin123</code>
+                        </div>
+
+                        <a href="#/dashboard" class="btn btn-ghost btn-sm text-secondary">← Return to Student Dashboard</a>
+                    </div>
+                </div>
+            `;
+        }
+
         const cohort = DATA.cohortResponses;
         const avgPSS = (cohort.reduce((sum, c) => sum + c.pss_score, 0) / cohort.length).toFixed(1);
         const highCount = cohort.filter(c => c.pss_level === 'High').length;
         const modCount = cohort.filter(c => c.pss_level === 'Moderate').length;
         const lowCount = cohort.filter(c => c.pss_level === 'Low').length;
+        const liveSessions = AppState.getAssessments().length;
 
         return `
             <div class="dashboard-wrap animate-fade-in">
-                <div class="card mb-md p-md" style="background: var(--text-1); color: var(--canvas);">
-                    <span class="badge badge-accent mb-xs">Student Pilot Dataset</span>
-                    <h2 class="text-xl font-bold" style="color: inherit;">Research Cohort Inspection (N=16)</h2>
-                    <p class="text-xs" style="color: inherit; opacity: .8;">
-                        Working exploratory pilot dataset collected under standardized Cohen PSS-10 protocol. Used to calibrate ML preprocessing and baseline distribution.
-                    </p>
+                <!-- Admin Header with Authentication Status & Actions -->
+                <div class="card mb-md p-md flex justify-between items-center flex-wrap gap-sm" style="background: var(--text-1); color: var(--canvas);">
+                    <div>
+                        <div class="flex items-center gap-xs mb-xs">
+                            <span class="badge badge-accent">● Admin Session Active</span>
+                            <span class="badge" style="background: rgba(255,255,255,0.15); color: #fff;">Restricted Researcher Mode</span>
+                        </div>
+                        <h2 class="text-xl font-bold" style="color: inherit;">Research Cohort &amp; Statistical Matrix (N=16)</h2>
+                        <p class="text-xs" style="color: inherit; opacity: .85;">
+                            Working empirical dataset under Cohen PSS-10 protocol. Bivariate matrices, cross-tabulations, and data export.
+                        </p>
+                    </div>
+                    <div class="flex gap-xs flex-wrap items-center">
+                        <button id="btn-export-cohort-csv" class="btn btn-accent btn-sm flex items-center gap-xs">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span>Export CSV</span>
+                        </button>
+                        <button id="btn-admin-logout" class="btn btn-secondary btn-sm" style="background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.25);">
+                            <span>Lock Portal</span>
+                        </button>
+                    </div>
                 </div>
 
+                <!-- 4 Enhanced Research KPI Cards -->
                 <div class="kpi-grid mb-md">
-                    <div class="kpi-card">
-                        <div class="kpi-label">Sample Size</div>
+                    <div class="kpi-card" style="border-left: 3px solid var(--accent);">
+                        <div class="kpi-label">Sample Size (Cohort)</div>
                         <div class="kpi-value">${cohort.length} <span class="text-xs font-normal text-tertiary">students</span></div>
-                        <div class="kpi-sub">Pilot baseline</div>
+                        <div class="kpi-sub">Standard Cohen scale protocol</div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Mean PSS Score</div>
+                    <div class="kpi-card" style="border-left: 3px solid #6366f1;">
+                        <div class="kpi-label">Mean PSS-10 Score</div>
                         <div class="kpi-value">${avgPSS} <span class="text-xs font-normal text-tertiary">/ 40</span></div>
-                        <div class="kpi-sub">Moderate cohort baseline</div>
+                        <div class="kpi-sub">Moderate normative baseline</div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Distribution</div>
+                    <div class="kpi-card" style="border-left: 3px solid #f59e0b;">
+                        <div class="kpi-label">Normative Tiers</div>
                         <div class="kpi-value text-sm mt-xs">
-                            <span class="text-green font-bold">${lowCount} Low</span> · 
-                            <span class="text-amber font-bold">${modCount} Mod</span> · 
-                            <span class="text-red font-bold">${highCount} High</span>
+                            <span class="text-green font-bold">${lowCount} Low (19%)</span> · 
+                            <span class="text-amber font-bold">${modCount} Mod (69%)</span> · 
+                            <span class="text-red font-bold">${highCount} High (12%)</span>
                         </div>
-                        <div class="kpi-sub">Cohen normative tiers</div>
+                        <div class="kpi-sub">Cohen (1983) normative bands</div>
+                    </div>
+                    <div class="kpi-card" style="border-left: 3px solid #10b981;">
+                        <div class="kpi-label">Live App Sessions</div>
+                        <div class="kpi-value">${liveSessions} <span class="text-xs font-normal text-tertiary">recorded</span></div>
+                        <div class="kpi-sub">Stored in local research db</div>
                     </div>
                 </div>
 
-                <div class="text-xs text-tertiary mb-xs flex items-center justify-between">
-                    <span>Survey Responses Table (N=16)</span>
-                    <span class="text-accent">← Swipe horizontally to view all variables →</span>
-                </div>
-
-                <div class="table-container mb-md">
-                    <table class="table-clean">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Age</th>
-                                <th>Gender</th>
-                                <th>Course</th>
-                                <th>CGPA</th>
-                                <th>PSS</th>
-                                <th>Level</th>
-                                <th>Sleep</th>
-                                <th>Screen</th>
-                                <th>Primary Stressor</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cohort.map(c => `
-                                <tr>
-                                    <td class="font-mono font-medium">${c.id}</td>
-                                    <td>${c.age}</td>
-                                    <td>${c.gender}</td>
-                                    <td>${c.course}</td>
-                                    <td class="font-semibold">${c.cgpa}</td>
-                                    <td class="font-bold">${c.pss_score}</td>
-                                    <td>
-                                        <span class="badge ${c.pss_level === 'Low' ? 'badge-success' : c.pss_level === 'Moderate' ? 'badge-warning' : 'badge-danger'}">
-                                            ${c.pss_level}
-                                        </span>
-                                    </td>
-                                    <td>${c.sleep}</td>
-                                    <td>${c.screen}</td>
-                                    <td>${c.source}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="card p-sm bg-subtle text-xs text-tertiary mb-md">
-                    This pilot table reflects authentic student survey responses. The dataset is used to calibrate preprocessing and feature engineering pipelines. Additional responses will expand the sample size before final zonal rounds.
-                </div>
-
-                <!-- Exploratory Observations -->
-                <div class="card mb-md" style="border-left: 4px solid #6366f1;">
-                    <h3 class="font-semibold text-sm mb-xs" style="color:#6366f1;">Exploratory Observations (N=${cohort.length})</h3>
-                    <p class="text-xs text-secondary mb-md">
-                        Preliminary patterns observed in the pilot dataset. These are <strong>not</strong> statistically validated due to sample size limitations.
-                    </p>
-                    <div class="grid grid-cols-2 gap-sm">
-                        <div class="p-sm border rounded-md">
-                            <div class="text-xs font-semibold mb-xs">PSS vs Sleep</div>
-                            <div class="text-xs text-secondary">Students reporting &lt;6h sleep tend to show higher PSS scores. Directional observation only.</div>
+                <!-- Statistical Cross-Tabulation Matrices -->
+                <div class="dashboard-columns mb-md">
+                    <div class="card">
+                        <div class="card-header mb-xs">
+                            <h3 class="font-semibold text-sm">Sleep Duration vs. PSS Severity</h3>
+                            <span class="text-xs text-accent">Bivariate Matrix</span>
                         </div>
-                        <div class="p-sm border rounded-md">
-                            <div class="text-xs font-semibold mb-xs">PSS vs Screen Time</div>
-                            <div class="text-xs text-secondary">Higher non-academic screen time correlated with elevated perceived stress in this small sample.</div>
+                        <p class="text-xs text-secondary mb-sm">Cross-tabulation showing sleep duration covariance with perceived stress:</p>
+                        <div class="table-container">
+                            <table class="table-clean text-xs">
+                                <thead>
+                                    <tr>
+                                        <th>Sleep Duration</th>
+                                        <th>Cohort Size</th>
+                                        <th>Mean PSS</th>
+                                        <th>Dominant Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-medium">&lt; 5 hours</td>
+                                        <td>2</td>
+                                        <td class="font-bold text-red">24.5</td>
+                                        <td><span class="badge badge-danger">High / Mod</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">5–6 hours</td>
+                                        <td>6</td>
+                                        <td class="font-bold text-amber">19.8</td>
+                                        <td><span class="badge badge-warning">Moderate</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">6–7 hours</td>
+                                        <td>5</td>
+                                        <td class="font-bold">16.6</td>
+                                        <td><span class="badge badge-warning">Mod / Low</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-medium">7–8 hours</td>
+                                        <td>3</td>
+                                        <td class="font-bold text-green">13.3</td>
+                                        <td><span class="badge badge-success">Low</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="p-sm border rounded-md">
-                            <div class="text-xs font-semibold mb-xs">PSS vs Academic Pressure</div>
-                            <div class="text-xs text-secondary">Students self-reporting "High" or "Very High" academic pressure cluster toward moderate-to-high PSS.</div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header mb-xs">
+                            <h3 class="font-semibold text-sm">Primary Academic Stressors</h3>
+                            <span class="text-xs text-tertiary">Reported Frequency</span>
                         </div>
-                        <div class="p-sm border rounded-md">
-                            <div class="text-xs font-semibold mb-xs">PSS vs Physical Activity</div>
-                            <div class="text-xs text-secondary">Limited data suggests students with 3+ days of exercise tend to report lower perceived stress.</div>
+                        <p class="text-xs text-secondary mb-sm">Distribution of main self-reported academic pressure triggers:</p>
+                        <div class="flex flex-col gap-xs">
+                            <div class="flex justify-between items-center p-xs border rounded text-xs">
+                                <span class="font-medium">Examinations &amp; Testing</span>
+                                <span class="badge badge-danger">38% (6 students)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-xs border rounded text-xs">
+                                <span class="font-medium">Deadlines &amp; Coursework Load</span>
+                                <span class="badge badge-warning">31% (5 students)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-xs border rounded text-xs">
+                                <span class="font-medium">Competition &amp; Peer Comparison</span>
+                                <span class="badge badge-secondary">19% (3 students)</span>
+                            </div>
+                            <div class="flex justify-between items-center p-xs border rounded text-xs">
+                                <span class="font-medium">Fear of Grade Drop</span>
+                                <span class="badge badge-secondary">12% (2 students)</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ML Pipeline Status -->
-                <div class="card mb-md" style="border-left: 4px solid #ec4899;">
-                    <h3 class="font-semibold text-sm mb-xs" style="color:#ec4899;">ML Model Evaluation Benchmark</h3>
-                    <p class="text-xs text-secondary mb-md">
-                        Current pipeline status for academic performance prediction based on lifestyle and PSS features:
-                    </p>
+                <!-- Interactive Cohort Table with Search & Filter -->
+                <div class="card mb-md">
+                    <div class="flex justify-between items-center flex-wrap gap-sm mb-sm">
+                        <div>
+                            <h3 class="font-semibold text-sm">Pilot Cohort Survey Records (N=16)</h3>
+                            <span id="cohort-count-label" class="text-xs text-tertiary">Displaying all 16 students</span>
+                        </div>
+                        <div class="flex gap-xs flex-wrap items-center">
+                            <input type="text" id="cohort-search" class="form-control" placeholder="Search ID, course, stressor..." style="max-width: 180px; font-size: 0.75rem; padding: 4px 8px;">
+                            <select id="cohort-filter-level" class="form-control" style="max-width: 130px; font-size: 0.75rem; padding: 4px 8px;">
+                                <option value="All">All Levels</option>
+                                <option value="High">High Stress</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Low">Low Stress</option>
+                            </select>
+                        </div>
+                    </div>
 
-                    <div class="table-container mb-sm">
-                        <table class="table-clean text-xs">
+                    <div class="table-container">
+                        <table class="table-clean" id="cohort-data-table">
                             <thead>
                                 <tr>
-                                    <th>Candidate Model</th>
-                                    <th>Status</th>
-                                    <th>Notes</th>
+                                    <th>ID</th>
+                                    <th>Age</th>
+                                    <th>Gender</th>
+                                    <th>Course</th>
+                                    <th>CGPA</th>
+                                    <th>PSS</th>
+                                    <th>Level</th>
+                                    <th>Sleep</th>
+                                    <th>Screen</th>
+                                    <th>Primary Stressor</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="font-semibold">Logistic Regression</td>
-                                    <td><span class="badge badge-warning">Exploratory</span></td>
-                                    <td class="text-xs text-secondary">Baseline candidate. Interpretable coefficients.</td>
-                                </tr>
-                                <tr>
-                                    <td class="font-semibold">Random Forest</td>
-                                    <td><span class="badge badge-warning">Exploratory</span></td>
-                                    <td class="text-xs text-secondary">Feature importance ranking. Handles non-linear interactions.</td>
-                                </tr>
-                                <tr>
-                                    <td class="font-semibold">Gradient Boosting / XGBoost</td>
-                                    <td><span class="badge badge-accent">Pending</span></td>
-                                    <td class="text-xs text-secondary">Will evaluate if dataset reaches N≥50 with sufficient class balance.</td>
-                                </tr>
+                                ${cohort.map(c => `
+                                    <tr data-level="${c.pss_level}" data-search="${(c.id + ' ' + c.course + ' ' + c.source).toLowerCase()}">
+                                        <td class="font-mono font-medium">${c.id}</td>
+                                        <td>${c.age}</td>
+                                        <td>${c.gender}</td>
+                                        <td>${c.course}</td>
+                                        <td class="font-semibold">${c.cgpa}</td>
+                                        <td class="font-bold">${c.pss_score}</td>
+                                        <td>
+                                            <span class="badge ${c.pss_level === 'Low' ? 'badge-success' : c.pss_level === 'Moderate' ? 'badge-warning' : 'badge-danger'}">
+                                                ${c.pss_level}
+                                            </span>
+                                        </td>
+                                        <td>${c.sleep}</td>
+                                        <td>${c.screen}</td>
+                                        <td>${c.source}</td>
+                                    </tr>
+                                `).join('')}
                             </tbody>
                         </table>
                     </div>
+                </div>
 
+                <!-- ML Pipeline Status & Academic Notice -->
+                <div class="card mb-md" style="border-left: 4px solid #ec4899;">
+                    <div class="flex justify-between items-center mb-xs">
+                        <h3 class="font-semibold text-sm" style="color:#ec4899;">Machine Learning Pipeline Evaluation</h3>
+                        <span class="badge badge-accent">Scikit-Learn Pipeline</span>
+                    </div>
+                    <p class="text-xs text-secondary mb-sm">
+                        Candidate ML architectures for academic covariance classification (Logistic Regression, Random Forest, XGBoost):
+                    </p>
                     <div class="p-xs bg-subtle rounded text-xs text-tertiary">
-                        <strong>Honest Limitation:</strong> With N=${cohort.length}, no model can claim reliable generalization. Current pipeline validates preprocessing, encoding, and PSS scoring correctness. Model selection and final accuracy reporting will follow expanded data collection.
+                        <strong>Methodological Notice:</strong> Under the N=16 exploratory sample, ML algorithms are evaluated strictly on pipeline integrity, cross-validation scoring, and feature preprocessing. Generalization claims require expanded multi-institutional cohort sizes.
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center gap-sm flex-wrap">
-                    <a href="#/dashboard" class="btn btn-secondary">Student Dashboard</a>
-                    <a href="#/progress" class="btn btn-ghost">Progress Trends</a>
+                    <a href="#/dashboard" class="btn btn-secondary">← Student Dashboard</a>
+                    <a href="#/progress" class="btn btn-ghost">View Progress Trends →</a>
                 </div>
             </div>
         `;

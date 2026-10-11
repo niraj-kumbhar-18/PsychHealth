@@ -60,7 +60,7 @@ const API = {
             recommendations,
             ml_prediction: {
                 status: 'model_in_training',
-                message: 'Academic correlation model is in pilot training phase with real Avishkar survey responses.',
+                message: 'Academic correlation model is in pilot training phase with student cohort survey responses.',
                 confidence: 'Evaluating validation curves'
             }
         });
