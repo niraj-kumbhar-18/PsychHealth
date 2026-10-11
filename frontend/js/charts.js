@@ -10,10 +10,11 @@ const Charts = {
     setupCanvas(canvas) {
         if (!canvas) return null;
         const dpr = window.devicePixelRatio || 1;
+        const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
         const rect = canvas.getBoundingClientRect();
 
-        const width = rect.width || canvas.width || 320;
-        const height = rect.height || canvas.height || 180;
+        const width = parentW || rect.width || canvas.width || 320;
+        const height = rect.height || (canvas.parentElement ? canvas.parentElement.clientHeight : 0) || canvas.height || 180;
 
         canvas.width = width * dpr;
         canvas.height = height * dpr;
@@ -437,7 +438,13 @@ const Charts = {
             ctx.font = '9px sans-serif';
             ctx.textAlign = 'center';
             const dateParts = entry.date ? entry.date.split('-') : [];
-            const label = dateParts.length >= 3 ? `${dateParts[1]}/${dateParts[2]}` : `D${idx + 1}`;
+            let label = dateParts.length >= 3 ? `${dateParts[1]}/${dateParts[2]}` : `D${idx + 1}`;
+            if (entry.timestamp && habits.filter(h => h.date === entry.date).length > 1) {
+                try {
+                    const t = new Date(entry.timestamp);
+                    label = `${label} ${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`;
+                } catch(e) {}
+            }
             ctx.fillText(label, x, height - padding.bottom + 16);
         });
     }

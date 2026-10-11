@@ -518,19 +518,26 @@ const AppState = {
 
     getHabitLog() {
         const u = this._getUser();
-        return u ? [...(u.habitLog || [])] : [];
+        if (!u || !u.habitLog) return [];
+        return [...u.habitLog].sort((a, b) => {
+            const timeA = new Date(a.timestamp || a.date).getTime();
+            const timeB = new Date(b.timestamp || b.date).getTime();
+            return timeA - timeB;
+        });
     },
 
     logHabit(entry) {
         const u = this._getUser();
         if (!u) return null;
 
-        const todayStr = new Date().toISOString().split('T')[0];
+        const entryDate = (entry.date && typeof entry.date === 'string')
+            ? entry.date.trim()
+            : new Date().toISOString().split('T')[0];
         if (!u.habitLog) u.habitLog = [];
-        const existingIdx = u.habitLog.findIndex(e => e.date === todayStr);
 
         const record = {
-            date: todayStr,
+            id: 'hl_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            date: entryDate,
             timestamp: new Date().toISOString(),
             sleep_hours: Math.max(0, parseFloat(entry.sleep_hours) || 0),
             screen_hours: Math.max(0, parseFloat(entry.screen_hours) || 0),
@@ -539,12 +546,7 @@ const AppState = {
             daily_stress: entry.daily_stress ? Math.max(1, Math.min(5, parseInt(entry.daily_stress, 10))) : 3
         };
 
-        if (existingIdx >= 0) {
-            u.habitLog[existingIdx] = record;
-        } else {
-            u.habitLog.push(record);
-        }
-
+        u.habitLog.push(record);
         this._persistRegistry();
 
         // Sync with SQLite server

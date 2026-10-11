@@ -1645,7 +1645,13 @@ const Screens = {
                 </div>
 
                 <form id="form-log-habit" class="card mb-md">
-                    <h3 class="font-semibold text-sm mb-sm">Record Today's Entry</h3>
+                    <div class="flex items-center justify-between mb-sm flex-wrap gap-xs">
+                        <h3 class="font-semibold text-sm">Record Daily Observation</h3>
+                        <div class="flex items-center gap-xs">
+                            <label class="text-xs text-secondary font-medium" for="h-date">Date:</label>
+                            <input type="date" id="h-date" class="form-control" style="padding: 4px 8px; font-size: 12px; height: 32px; width: auto;" value="${new Date().toISOString().split('T')[0]}" required>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-2 gap-sm mb-md">
                         <div>
                             <label class="text-xs font-medium block mb-xs">Sleep Last Night (hours)</label>
@@ -1733,15 +1739,22 @@ const Screens = {
 
                 <!-- Lifestyle Trends Over Time -->
                 <div class="card mb-md">
-                    <h3 class="font-semibold text-sm mb-xs">Lifestyle Trends Over Time</h3>
-                    <p class="text-xs text-secondary mb-md">Sleep, screen time, and study hours from your daily habit log:</p>
-                    ${habits.length >= 2 ? `
+                    <div class="flex items-center justify-between mb-xs flex-wrap gap-xs">
+                        <h3 class="font-semibold text-sm">Lifestyle Trends Over Time</h3>
+                        <div class="flex items-center gap-xs text-xs flex-wrap">
+                            <span class="badge" style="background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 600;">● Sleep (hrs)</span>
+                            <span class="badge" style="background: rgba(168, 85, 247, 0.12); color: #9333ea; font-weight: 600;">● Screen (hrs)</span>
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-weight: 600;">● Study (hrs)</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-secondary mb-md">Daily sleep, screen time, and study hours tracked longitudinally:</p>
+                    ${habits.length >= 1 ? `
                         <div style="height: 180px; position: relative;">
                             <canvas id="lifestyle-trend-canvas"></canvas>
                         </div>
                     ` : `
                         <div class="p-sm bg-subtle rounded-md text-xs text-tertiary text-center">
-                            Log at least 2 daily entries in the <a href="#/tracking" class="text-accent font-semibold">Daily Habit Log</a> to see lifestyle trends here.
+                            No daily habit logs recorded yet. Log your entries in the <a href="#/tracking" class="text-accent font-semibold">Daily Habit Log</a> to see lifestyle trends here.
                         </div>
                     `}
                 </div>

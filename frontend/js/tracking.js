@@ -60,21 +60,24 @@ const Tracking = {
         const logs = AppState.getHabitLog();
         if (logs.length === 0) return 0;
 
+        const uniqueDates = Array.from(new Set(logs.map(l => (l.date || '').split('T')[0]))).filter(Boolean);
+        if (uniqueDates.length === 0) return 0;
+
         // Sort descending by date
-        const sorted = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+        const sorted = uniqueDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
         const today = new Date().toISOString().split('T')[0];
         const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
         // Check if most recent is today or yesterday
-        if (sorted[0].date !== today && sorted[0].date !== yesterday) {
+        if (sorted[0] !== today && sorted[0] !== yesterday) {
             return 0;
         }
 
         let streak = 0;
-        let expected = new Date(sorted[0].date);
+        let expected = new Date(sorted[0]);
 
-        for (const log of sorted) {
-            const logDate = new Date(log.date);
+        for (const dateStr of sorted) {
+            const logDate = new Date(dateStr);
             const diffDays = Math.round((expected - logDate) / 86400000);
             if (diffDays === 0) {
                 streak++;

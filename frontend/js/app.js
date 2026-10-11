@@ -829,6 +829,8 @@ const App = {
         if (form) {
             form.onsubmit = (e) => {
                 e.preventDefault();
+                const dateInput = document.getElementById('h-date');
+                const logDate = (dateInput && dateInput.value) ? dateInput.value.trim() : new Date().toISOString().split('T')[0];
                 const sleep = parseFloat(document.getElementById('h-sleep').value);
                 const screen = parseFloat(document.getElementById('h-screen').value);
                 const study = parseFloat(document.getElementById('h-study').value);
@@ -842,6 +844,7 @@ const App = {
                 }
 
                 const entry = {
+                    date: logDate,
                     sleep_hours: Math.max(0, isNaN(sleep) ? 0 : sleep),
                     screen_hours: Math.max(0, isNaN(screen) ? 0 : screen),
                     study_hours: Math.max(0, isNaN(study) ? 0 : study),
