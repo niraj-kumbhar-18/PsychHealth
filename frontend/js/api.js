@@ -61,9 +61,9 @@ const API = {
             factors,
             recommendations,
             ml_prediction: {
-                status: 'model_in_training',
-                message: 'Academic correlation model is in pilot training phase with student cohort survey responses.',
-                confidence: 'Evaluating validation curves'
+                status: 'not_deployed',
+                message: 'Academic performance modelling is currently under research evaluation. No ML prediction is being generated.',
+                confidence: null
             }
         });
 
