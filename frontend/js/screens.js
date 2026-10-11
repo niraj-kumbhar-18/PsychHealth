@@ -165,11 +165,7 @@ const Screens = {
                         </button>
                     </form>
 
-                    <div class="p-xs bg-subtle rounded text-xs text-tertiary mt-md text-center">
-                        <div>Returning Demo Account: ID <code class="font-mono font-bold text-accent">STU-101</code> · Password <code class="font-mono font-bold text-accent">pass123</code></div>
-                        <button type="button" id="btn-fill-demo" class="btn btn-ghost btn-xs text-accent mt-xs" style="text-decoration: underline; cursor: pointer;">Auto-fill Demo Credentials</button>
                     </div>
-                </div>
 
                 <div class="text-center text-xs text-secondary">
                     Don't have an account yet? <a href="#/register" class="text-accent font-semibold">Register as New Student →</a>
@@ -1373,7 +1369,7 @@ const Screens = {
                     </div>
                     <div class="p-sm bg-subtle rounded-md">
                         <p class="text-xs text-secondary">
-                            <strong>Note on Machine Learning Pipeline:</strong> In accordance with GEMINI.md research integrity rules, the ML model for academic performance prediction is trained strictly on validated empirical datasets. Pilot dataset (N=16) is active for exploratory analysis; automated inference will be unlocked upon cohort scale completion.
+                            <strong>Note on Machine Learning Pipeline:</strong> In accordance with GEMINI.md research integrity rules, the ML model for academic performance prediction is trained strictly on validated empirical datasets. Empirical cohort dataset (N=234) is active for exploratory analysis and validation; ML pipelines are calibrated on verified student response features.
                         </p>
                     </div>
                 </div>
@@ -1926,7 +1922,7 @@ const Screens = {
     },
 
     /* ------------------------------------------------------------
-       RESEARCHER / ADMIN VIEW — Restricted Portal & Cohort Analysis (N=16)
+       RESEARCHER / ADMIN VIEW — Restricted Portal & Cohort Analysis (N=234)
        ------------------------------------------------------------ */
     renderResearcher() {
         if (!AppState.isAdminAuthenticated()) {
@@ -1941,7 +1937,7 @@ const Screens = {
                         <span class="badge badge-accent mb-xs">Restricted Access</span>
                         <h2 class="text-xl font-bold mb-xs">Admin Research Portal</h2>
                         <p class="text-xs text-secondary mb-md">
-                            Restricted access for academic researchers, faculty mentors, and project evaluators. Contains raw cohort responses (N=16), statistical covariance matrices, and dataset exports.
+                            Restricted access for academic researchers, faculty mentors, and project evaluators. Contains raw cohort responses (N=234), statistical covariance matrices, and dataset exports.
                         </p>
 
                         <form id="form-admin-login" class="mb-sm">
@@ -1956,10 +1952,6 @@ const Screens = {
                                 <span>Unlock Research Portal →</span>
                             </button>
                         </form>
-
-                        <div class="p-xs bg-subtle rounded text-xs text-tertiary mb-md">
-                            Demonstration Passcode: <code class="font-mono font-bold text-accent">admin123</code>
-                        </div>
 
                         <a href="#/dashboard" class="btn btn-ghost btn-sm text-secondary">← Return to Student Dashboard</a>
                     </div>
@@ -1983,7 +1975,7 @@ const Screens = {
                             <span class="badge badge-accent">● Admin Session Active</span>
                             <span class="badge" style="background: rgba(255,255,255,0.15); color: #fff;">Restricted Researcher Mode</span>
                         </div>
-                        <h2 class="text-xl font-bold" style="color: inherit;">Research Cohort &amp; Statistical Matrix (N=16)</h2>
+                        <h2 class="text-xl font-bold" style="color: inherit;">Research Cohort &amp; Statistical Matrix (N=${cohort.length})</h2>
                         <p class="text-xs" style="color: inherit; opacity: .85;">
                             Working empirical dataset under Cohen PSS-10 protocol. Bivariate matrices, cross-tabulations, and data export.
                         </p>
@@ -2106,8 +2098,8 @@ const Screens = {
                 <div class="card mb-md">
                     <div class="flex justify-between items-center flex-wrap gap-sm mb-sm">
                         <div>
-                            <h3 class="font-semibold text-sm">Pilot Cohort Survey Records (N=16)</h3>
-                            <span id="cohort-count-label" class="text-xs text-tertiary">Displaying all 16 students</span>
+                            <h3 class="font-semibold text-sm">Empirical Cohort Survey Records (N=${cohort.length})</h3>
+                            <span id="cohort-count-label" class="text-xs text-tertiary">Displaying all ${cohort.length} students</span>
                         </div>
                         <div class="flex gap-xs flex-wrap items-center">
                             <input type="text" id="cohort-search" class="form-control" placeholder="Search ID, course, stressor..." style="max-width: 180px; font-size: 0.75rem; padding: 4px 8px;">
@@ -2138,21 +2130,21 @@ const Screens = {
                             </thead>
                             <tbody>
                                 ${cohort.map(c => `
-                                    <tr data-level="${c.pss_level}" data-search="${(c.id + ' ' + c.course + ' ' + c.source).toLowerCase()}">
+                                    <tr data-level="${c.pss_level}" data-search="${(c.id + ' ' + (c.course || '') + ' ' + (c.source || c.academic_stress_source || '')).toLowerCase()}">
                                         <td class="font-mono font-medium">${c.id}</td>
-                                        <td>${c.age}</td>
-                                        <td>${c.gender}</td>
-                                        <td>${c.course}</td>
-                                        <td class="font-semibold">${c.cgpa}</td>
+                                        <td>${c.age || c.age_group || ''}</td>
+                                        <td>${c.gender || ''}</td>
+                                        <td>${c.course || ''}</td>
+                                        <td class="font-semibold">${c.cgpa || ''}</td>
                                         <td class="font-bold">${c.pss_score}</td>
                                         <td>
                                             <span class="badge ${c.pss_level === 'Low' ? 'badge-success' : c.pss_level === 'Moderate' ? 'badge-warning' : 'badge-danger'}">
                                                 ${c.pss_level}
                                             </span>
                                         </td>
-                                        <td>${c.sleep}</td>
-                                        <td>${c.screen}</td>
-                                        <td>${c.source}</td>
+                                        <td>${c.sleep || c.sleep_hours || ''}</td>
+                                        <td>${c.screen || c.screen_time || ''}</td>
+                                        <td>${c.source || c.academic_stress_source || ''}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -2170,7 +2162,7 @@ const Screens = {
                         Candidate ML architectures for academic covariance classification (Logistic Regression, Random Forest, XGBoost):
                     </p>
                     <div class="p-xs bg-subtle rounded text-xs text-tertiary">
-                        <strong>Methodological Notice:</strong> Under the N=16 exploratory sample, ML algorithms are evaluated strictly on pipeline integrity, cross-validation scoring, and feature preprocessing. Generalization claims require expanded multi-institutional cohort sizes.
+                        <strong>Methodological Notice:</strong> Under the empirical cohort sample (N=${cohort.length}), ML algorithms are evaluated strictly on pipeline integrity, cross-validation scoring, and feature preprocessing. Generalization claims require expanded multi-institutional cohort sizes.
                     </div>
                 </div>
 

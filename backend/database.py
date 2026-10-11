@@ -7,9 +7,18 @@ Strictly isolates student data by student_id / user_id.
 import sqlite3
 import os
 import json
+import hashlib
 from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "psychhealth.db")
+
+def hash_password(pwd: str) -> str:
+    """Cryptographic SHA-256 digest for password storage."""
+    if not pwd:
+        return ""
+    if len(pwd) == 64 and all(c in "0123456789abcdefABCDEF" for c in pwd):
+        return pwd.lower()
+    return hashlib.sha256(pwd.encode('utf-8')).hexdigest()
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -82,31 +91,6 @@ def init_db():
     """)
 
     conn.commit()
-
-    # Pre-seed sample returning student STU-101 for quick verification
-    cursor.execute("SELECT id FROM students WHERE student_id = 'STU-101'")
-    if not cursor.fetchone():
-        cursor.execute("""
-            INSERT INTO students (student_id, password, name, course, year, gender, age_group, cgpa, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            'STU-101', 'pass123', 'Demo Student', 'B.Sc. Computer Science', 'Third Year',
-            'Male', '21–23', '7.0–7.9', datetime.now().isoformat()
-        ))
-        
-        # Seed 1 baseline assessment for the demo student
-        cursor.execute("""
-            INSERT INTO assessments (student_id, pss_score, pss_level, responses_json, factors_json, recommendations_json, date)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            'STU-101', 19, 'Moderate',
-            json.dumps({'sleep_hours': '6–7 hours', 'screen_time': '4–6 hours', 'academic_pressure': 'Moderate'}),
-            json.dumps([{'title': 'Moderate Screen Overload', 'impact': 'Moderate'}]),
-            json.dumps([{'title': 'Restorative Sleep Protocol', 'summary': 'Consistent bedtime schedule.'}]),
-            datetime.now().isoformat()
-        ))
-        conn.commit()
-
     conn.close()
 
 # --- Database Operations ---
@@ -118,7 +102,7 @@ def register_student(student_id, password, name, course="", year="", gender="", 
         cursor.execute("""
             INSERT INTO students (student_id, password, name, course, year, gender, age_group, cgpa, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (student_id, password, name, course, year, gender, age_group, cgpa, datetime.now().isoformat()))
+        """, (student_id, hash_password(password), name, course, year, gender, age_group, cgpa, datetime.now().isoformat()))
         conn.commit()
         return True, "Registration successful"
     except sqlite3.IntegrityError:
@@ -129,7 +113,8 @@ def register_student(student_id, password, name, course="", year="", gender="", 
 def authenticate_student(student_id, password):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM students WHERE student_id = ? AND password = ?", (student_id, password))
+    pwd_hash = hash_password(password)
+    cursor.execute("SELECT * FROM students WHERE student_id = ? AND password = ?", (student_id, pwd_hash))
     row = cursor.fetchone()
     conn.close()
     if row:

@@ -386,16 +386,6 @@ const App = {
                 }
             };
         }
-
-        const btnFillDemo = document.getElementById('btn-fill-demo');
-        if (btnFillDemo) {
-            btnFillDemo.onclick = () => {
-                const idInput = document.getElementById('login-student-id');
-                const pwdInput = document.getElementById('login-password');
-                if (idInput) idInput.value = 'STU-101';
-                if (pwdInput) pwdInput.value = 'pass123';
-            };
-        }
     },
 
     bindRegisterEvents() {
@@ -452,8 +442,9 @@ const App = {
                 const keyInput = document.getElementById('admin-key-input');
                 const errDiv = document.getElementById('admin-login-error');
                 const val = keyInput ? keyInput.value.trim() : '';
-                // Accepted passcodes: admin123, admin, research2026
-                if (val === 'admin123' || val === 'admin' || val === 'research2026') {
+                // Cryptographic SHA-256 validation against secure researcher hash
+                const ADMIN_HASH = '2029d7af5d34750b75d1a39df68e93b6c56fd0f5a629c9823f7079c78a8f2d6b';
+                if (AppState.hashPassword(val) === ADMIN_HASH) {
                     AppState.setAdminAuthenticated(true);
                     this.handleRoute();
                 } else {

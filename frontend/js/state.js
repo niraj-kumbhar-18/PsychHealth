@@ -34,7 +34,81 @@ const AppState = {
         procrastination: null,
         concentration_difficulty: null,
         support_awareness: null,
+        concentration_difficulty: null,
+        support_awareness: null,
         help_seeking_comfort: null
+    },
+
+    sha256Sync(ascii) {
+        function rightRotate(value, amount) {
+            return (value >>> amount) | (value << (32 - amount));
+        }
+        const words = [];
+        const asciiBitLength = ascii.length * 8;
+        let hash = [
+            0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+            0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+        ];
+        const k = [
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+            0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+            0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+            0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+        ];
+        for (let i = 0; i < ascii.length; i++) {
+            words[i >> 2] |= (ascii.charCodeAt(i) & 0xff) << ((3 - (i % 4)) * 8);
+        }
+        words[ascii.length >> 2] |= 0x80 << ((3 - (ascii.length % 4)) * 8);
+        words[(((ascii.length + 8) >> 6) << 4) + 15] = asciiBitLength;
+        for (let i = 0; i < words.length; i += 16) {
+            const w = [];
+            for (let j = 0; j < 16; j++) w[j] = words[i + j] | 0;
+            for (let j = 16; j < 64; j++) {
+                const s0 = rightRotate(w[j - 15], 7) ^ rightRotate(w[j - 15], 18) ^ (w[j - 15] >>> 3);
+                const s1 = rightRotate(w[j - 2], 17) ^ rightRotate(w[j - 2], 19) ^ (w[j - 2] >>> 10);
+                w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;
+            }
+            let a = hash[0], b = hash[1], c = hash[2], d = hash[3];
+            let e = hash[4], f = hash[5], g = hash[6], h = hash[7];
+            for (let j = 0; j < 64; j++) {
+                const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+                const ch = (e & f) ^ ((~e) & g);
+                const temp1 = (h + S1 + ch + k[j] + w[j]) | 0;
+                const S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+                const maj = (a & b) ^ (a & c) ^ (b & c);
+                const temp2 = (S0 + maj) | 0;
+                h = g; g = f; f = e; e = (d + temp1) | 0;
+                d = c; c = b; b = a; a = (temp1 + temp2) | 0;
+            }
+            hash[0] = (hash[0] + a) | 0;
+            hash[1] = (hash[1] + b) | 0;
+            hash[2] = (hash[2] + c) | 0;
+            hash[3] = (hash[3] + d) | 0;
+            hash[4] = (hash[4] + e) | 0;
+            hash[5] = (hash[5] + f) | 0;
+            hash[6] = (hash[6] + g) | 0;
+            hash[7] = (hash[7] + h) | 0;
+        }
+        let result = '';
+        for (let i = 0; i < 8; i++) {
+            for (let j = 3; j >= 0; j--) {
+                const b = (hash[i] >> (j * 8)) & 255;
+                result += (b < 16 ? '0' : '') + b.toString(16);
+            }
+        }
+        return result;
+    },
+
+    hashPassword(str) {
+        if (!str) return '';
+        if (str.length === 64 && /^[0-9a-fA-F]{64}$/.test(str)) {
+            return str.toLowerCase();
+        }
+        return this.sha256Sync(str);
     },
 
     init() {
@@ -52,59 +126,9 @@ const AppState = {
             }
         }
 
-        // Initialize default returning demo student STU-101 if empty
-        if (!this._users['STU-101']) {
-            this._users['STU-101'] = {
-                student_id: 'STU-101',
-                password: 'pass123',
-                profile: {
-                    id: 'STU-101',
-                    name: 'Demo Student',
-                    course: 'B.Sc. Computer Science',
-                    year: 'Third Year',
-                    gender: 'Male',
-                    age_group: '21–23',
-                    academic_performance: '7.0–7.9'
-                },
-                consented: true,
-                assessments: [
-                    {
-                        id: 'assessment_demo_1',
-                        date: '2026-09-24T10:00:00.000Z',
-                        pss_score: 21,
-                        pss_level: 'Moderate',
-                        profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                        responses: { sleep_hours: '5–6 hours', screen_time: '4–6 hours', academic_pressure: 'Moderate' },
-                        factors: [{ id: 'sleep', title: 'Short Sleep Duration', impact: 'Moderate' }],
-                        recommendations: [{ title: 'Sleep Rhythm Stabilization', summary: 'Consistent 11 PM bedtime anchor.' }]
-                    },
-                    {
-                        id: 'assessment_demo_2',
-                        date: new Date(Date.now() - 3600000 * 24).toISOString(),
-                        pss_score: 18,
-                        pss_level: 'Moderate',
-                        profile: { course: 'B.Sc. Computer Science', year: 'Third Year' },
-                        responses: { sleep_hours: '6–7 hours', screen_time: '2–4 hours', academic_pressure: 'Moderate' },
-                        factors: [{ id: 'screen', title: 'Evening Screen Usage', impact: 'Moderate' }],
-                        recommendations: [{ title: 'Evening Digital Curfew', summary: 'Power down devices 45m before bed.' }]
-                    }
-                ],
-                habitLog: [
-                    { date: '2026-10-08', timestamp: new Date(Date.now() - 3600000 * 48).toISOString(), sleep_hours: 6.0, screen_hours: 3.5, study_hours: 2.5, exercise_minutes: 30, daily_stress: 3 },
-                    { date: '2026-10-09', timestamp: new Date(Date.now() - 3600000 * 24).toISOString(), sleep_hours: 6.5, screen_hours: 3.0, study_hours: 3.0, exercise_minutes: 20, daily_stress: 2 }
-                ],
-                activeExperiment: {
-                    experimentId: 'Sleep',
-                    startDate: new Date(Date.now() - 3600000 * 48).toISOString(),
-                    baselineValue: 5.5,
-                    days: [
-                        { day: 1, date: new Date(Date.now() - 3600000 * 48).toISOString(), value: 6.5, targetMet: true },
-                        { day: 2, date: new Date(Date.now() - 3600000 * 24).toISOString(), value: 7.0, targetMet: true }
-                    ]
-                },
-                completedExperiments: []
-            };
-            this._persistRegistry();
+        // Initialize empty registry if no users exist
+        if (!this._users) {
+            this._users = {};
         }
 
         // Restore active user session if previously logged in
@@ -131,9 +155,10 @@ const AppState = {
         }
 
         // Create new isolated student account with ZERO previous data
+        const hashedPwd = this.hashPassword(pwd);
         const newStudent = {
             student_id: sid,
-            password: pwd,
+            password: hashedPwd,
             profile: {
                 id: sid,
                 name: (profileData.name || '').trim(),
@@ -158,7 +183,7 @@ const AppState = {
         // Asynchronous sync with SQLite server if running
         this._syncWithServer('POST', '/auth/register', {
             student_id: sid,
-            password: pwd,
+            password: hashedPwd,
             ...newStudent.profile
         });
 
@@ -168,8 +193,11 @@ const AppState = {
     loginStudent(studentId, password) {
         const sid = (studentId || '').trim().toUpperCase();
         const pwd = (password || '').trim();
+        const hashedPwd = this.hashPassword(pwd);
 
-        if (this._users[sid] && this._users[sid].password === pwd) {
+        if (this._users[sid] && (this._users[sid].password === hashedPwd || this._users[sid].password === pwd)) {
+            this._users[sid].password = hashedPwd;
+            this._persistRegistry();
             this._setActiveSession(sid);
             this.resetCurrentAssessment();
             this._refreshUserDataFromServer(sid);
@@ -177,7 +205,7 @@ const AppState = {
         }
 
         // If not in local cache, attempt server authentication
-        return this._remoteLogin(sid, pwd);
+        return this._remoteLogin(sid, hashedPwd);
     },
 
     async _refreshUserDataFromServer(sid) {
