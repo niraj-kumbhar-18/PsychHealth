@@ -625,7 +625,7 @@ const Screens = {
                         </div>
                     </div>
 
-                    <div class="card p-xl mb-lg text-center" style="border-top: 4px solid var(--accent); background: linear-gradient(180deg, rgba(13,148,136,0.05) 0%, var(--surface) 100%);">
+                    <div class="card p-xl mb-lg text-center">
                         <span class="badge badge-accent mb-sm">No Active Assessment</span>
                         <h2 class="text-xl font-bold mb-xs">Welcome to PsychHealth, ${p.name || 'Student'}</h2>
                         <p class="text-secondary max-w-md mx-auto mb-md text-sm">
@@ -635,15 +635,15 @@ const Screens = {
                     </div>
 
                     <div class="kpi-grid">
-                        <div class="card" style="border-left: 4px solid #0d9488;">
+                        <div class="card">
                             <h3 class="font-semibold text-sm mb-xs text-accent">Standardized PSS-10</h3>
                             <p class="text-xs text-secondary">Measures unpredictability, overload, and confidence under the Cohen scale.</p>
                         </div>
-                        <div class="card" style="border-left: 4px solid #6366f1;">
+                        <div class="card">
                             <h3 class="font-semibold text-sm mb-xs" style="color:#6366f1;">Actionable Guidance</h3>
                             <p class="text-xs text-secondary">Deterministic rule-based recommendations for sleep, screen, and study hygiene.</p>
                         </div>
-                        <div class="card" style="border-left: 4px solid #f59e0b;">
+                        <div class="card">
                             <h3 class="font-semibold text-sm mb-xs" style="color:#f59e0b;">What-If Simulation</h3>
                             <p class="text-xs text-secondary">Test how adjusting your sleep duration or screen time alters stress patterns.</p>
                         </div>
@@ -724,7 +724,7 @@ const Screens = {
                 <!-- Responsive 1-3 Column KPI Grid with Rich Vibrant Visual Accents -->
                 <div class="kpi-grid">
                     <!-- Hero KPI Card: PSS-10 Primary Score -->
-                    <div class="kpi-card hero-kpi" style="border-left: 4px solid var(--accent); background: linear-gradient(135deg, rgba(13,148,136,0.08) 0%, var(--surface) 100%);">
+                    <div class="kpi-card hero-kpi">
                         <div>
                             <div class="flex justify-between items-center mb-xs">
                                 <span class="kpi-label" style="color: var(--accent);">Perceived Stress (PSS-10)</span>
@@ -741,7 +741,7 @@ const Screens = {
                     </div>
 
                     <!-- Sleep Duration KPI Card -->
-                    <div class="kpi-card" style="border-left: 4px solid #6366f1; background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, var(--surface) 100%);">
+                    <div class="kpi-card">
                         <div>
                             <span class="kpi-label" style="color: #6366f1;">Average Sleep</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.sleep_hours || 'Not recorded'}</div>
@@ -750,7 +750,7 @@ const Screens = {
                     </div>
 
                     <!-- Screen Time KPI Card -->
-                    <div class="kpi-card" style="border-left: 4px solid #f59e0b; background: linear-gradient(135deg, rgba(245,158,11,0.06) 0%, var(--surface) 100%);">
+                    <div class="kpi-card">
                         <div>
                             <span class="kpi-label" style="color: #f59e0b;">Screen Time (Non-Acad)</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.screen_time || 'Not recorded'}</div>
@@ -759,7 +759,7 @@ const Screens = {
                     </div>
 
                     <!-- Academic Pressure KPI Card -->
-                    <div class="kpi-card" style="border-left: 4px solid #ec4899; background: linear-gradient(135deg, rgba(236,72,153,0.06) 0%, var(--surface) 100%);">
+                    <div class="kpi-card">
                         <div>
                             <span class="kpi-label" style="color: #ec4899;">Academic Pressure</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.academic_pressure || 'Not recorded'}</div>
@@ -768,7 +768,7 @@ const Screens = {
                     </div>
 
                     <!-- Physical Activity KPI Card -->
-                    <div class="kpi-card" style="border-left: 4px solid #10b981; background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, var(--surface) 100%);">
+                    <div class="kpi-card">
                         <div>
                             <span class="kpi-label" style="color: #10b981;">Physical Activity</span>
                             <div class="kpi-value text-base mt-xs">${latest.responses.physical_activity || 'Not recorded'}</div>
@@ -777,7 +777,7 @@ const Screens = {
                     </div>
 
                     <!-- Longitudinal Assessment Count Card -->
-                    <div class="kpi-card" style="border-left: 4px solid #06b6d4; background: linear-gradient(135deg, rgba(6,182,212,0.06) 0%, var(--surface) 100%);">
+                    <div class="kpi-card">
                         <div>
                             <span class="kpi-label" style="color: #06b6d4;">Assessment History</span>
                             <div class="kpi-value mt-xs">${count} <span class="text-sm font-normal text-tertiary">sessions</span></div>
@@ -1299,7 +1299,7 @@ const Screens = {
                 </div>
 
                 ${prev ? `
-                    <div class="card mb-md" style="border-left: 4px solid var(--accent); background: linear-gradient(180deg, rgba(13,148,136,0.04) 0%, var(--surface) 100%);">
+                    <div class="card mb-md">
                         <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
                             <span class="badge badge-accent">Longitudinal Comparison</span>
                             <span class="text-xs text-tertiary">Session #${assessments.length - 1} vs Session #${assessments.length}</span>
@@ -1490,7 +1490,7 @@ const Screens = {
                 </div>
 
                 ${activeExp ? `
-                    <div class="card mb-lg" style="border-left: 4px solid var(--accent); background: linear-gradient(180deg, rgba(13,148,136,0.04) 0%, var(--surface) 100%);">
+                    <div class="card mb-lg">
                         <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
                             <span class="badge badge-accent">Active Protocol</span>
                             <span class="text-xs font-semibold text-accent">Day ${activeExp.days.length + 1} of 7</span>
@@ -1533,7 +1533,7 @@ const Screens = {
                 ` : ''}
 
                 ${(!activeExp && lastExp) ? `
-                    <div class="card mb-lg" style="border-left: 4px solid #16a34a; background: linear-gradient(180deg, rgba(22,163,74,0.05) 0%, var(--surface) 100%);">
+                    <div class="card mb-lg">
                         <div class="flex justify-between items-center mb-xs flex-wrap gap-xs">
                             <span class="badge badge-success">Protocol Completed 🎉</span>
                             <span class="text-xs text-tertiary">Finished ${this.formatRealDateTime(lastExp.completionDate)}</span>
@@ -1554,17 +1554,17 @@ const Screens = {
                         </div>
 
                         <div class="kpi-grid mb-md">
-                            <div class="kpi-card" style="border-left: 3px solid var(--text-3);">
+                            <div class="kpi-card">
                                 <div class="kpi-label">Before Experiment</div>
                                 <div class="kpi-value text-base mt-xs">${lastExp.baselineValue} hrs</div>
                                 <div class="kpi-sub">Baseline average</div>
                             </div>
-                            <div class="kpi-card" style="border-left: 3px solid #16a34a;">
+                            <div class="kpi-card">
                                 <div class="kpi-label" style="color:#16a34a;">During Experiment</div>
                                 <div class="kpi-value text-base mt-xs">${lastExp.duringAverage} hrs</div>
                                 <div class="kpi-sub">7-day completed average</div>
                             </div>
-                            <div class="kpi-card" style="border-left: 3px solid var(--accent);">
+                            <div class="kpi-card">
                                 <div class="kpi-label" style="color:var(--accent);">Observed Shift</div>
                                 <div class="kpi-value text-base mt-xs">
                                     ${lastExp.delta >= 0 ? `+${lastExp.delta.toFixed(1)} hrs ↑` : `${lastExp.delta.toFixed(1)} hrs ↓`}
@@ -1622,7 +1622,7 @@ const Screens = {
                     <a href="#/dashboard" class="btn btn-secondary btn-sm">Dashboard</a>
                 </div>
 
-                <div class="card p-sm bg-subtle mb-md flex items-center gap-sm flex-wrap" style="border-left: 4px solid #6366f1;">
+                <div class="card p-sm bg-subtle mb-md flex items-center gap-sm flex-wrap">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
                     <span class="text-xs text-secondary">
                         <strong>Data Flow:</strong> Your daily entries here feed directly into <a href="#/progress" class="text-accent font-semibold">Progress Trends</a> charts and the <a href="#/simulator" class="text-accent font-semibold">What-If Simulator</a>.
@@ -1630,15 +1630,15 @@ const Screens = {
                 </div>
 
                 <div class="kpi-grid mb-md">
-                    <div class="kpi-card" style="border-left: 3px solid var(--accent);">
+                    <div class="kpi-card">
                         <div class="kpi-label">Active Streak</div>
                         <div class="kpi-value">${streak} <span class="text-xs font-normal text-tertiary">days</span></div>
                     </div>
-                    <div class="kpi-card" style="border-left: 3px solid #6366f1;">
+                    <div class="kpi-card">
                         <div class="kpi-label">7-Day Avg Sleep</div>
                         <div class="kpi-value">${summary.avgSleep} <span class="text-xs font-normal text-tertiary">hrs</span></div>
                     </div>
-                    <div class="kpi-card" style="border-left: 3px solid #f59e0b;">
+                    <div class="kpi-card">
                         <div class="kpi-label">7-Day Avg Screen</div>
                         <div class="kpi-value">${summary.avgScreen} <span class="text-xs font-normal text-tertiary">hrs</span></div>
                     </div>
@@ -1673,10 +1673,10 @@ const Screens = {
                     <div class="mb-md">
                         <label class="text-xs font-medium block mb-xs">Daily Perceived Stress (Optional, 1–5)</label>
                         <div class="flex gap-xs flex-wrap">
-                            ${[1,2,3,4,5].map(v => `
+                            ${[1, 2, 3, 4, 5].map(v => `
                                 <label class="radio-chip">
                                     <input type="radio" name="daily_stress" value="${v}">
-                                    <span>${v} — ${['Very Low','Low','Moderate','High','Very High'][v-1]}</span>
+                                    <span>${v} — ${['Very Low', 'Low', 'Moderate', 'High', 'Very High'][v - 1]}</span>
                                 </label>
                             `).join('')}
                         </div>
@@ -1761,7 +1761,7 @@ const Screens = {
 
                 <!-- Before vs After Comparison Table -->
                 ${comparison && comparison.hasMultiple ? `
-                    <div class="card mb-md" style="border-left: 4px solid var(--accent);">
+                    <div class="card mb-md">
                         <h3 class="font-semibold text-sm mb-xs">Before vs After Comparison</h3>
                         <p class="text-xs text-secondary mb-md">
                             Comparing your first assessment (${new Date(comparison.baseline.date).toLocaleDateString()}) with your most recent (${new Date(comparison.current.date).toLocaleDateString()}):
@@ -1929,12 +1929,7 @@ const Screens = {
         if (!AppState.isAdminAuthenticated()) {
             return `
                 <div class="assessment-wrap animate-fade-in" style="max-width: 480px; margin: 40px auto;">
-                    <div class="card p-xl text-center" style="border-top: 4px solid var(--accent); box-shadow: var(--shadow-md);">
-                        <div class="mb-sm flex justify-center">
-                            <div style="width: 58px; height: 58px; border-radius: 50%; background: rgba(13,148,136,0.12); display: flex; align-items: center; justify-content: center; color: var(--accent);">
-                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                            </div>
-                        </div>
+                    <div class="card p-xl text-center">
                         <span class="badge badge-accent mb-xs">Restricted Access</span>
                         <h2 class="text-xl font-bold mb-xs">Admin Research Portal</h2>
                         <p class="text-xs text-secondary mb-md">

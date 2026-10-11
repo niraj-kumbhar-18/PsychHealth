@@ -135,7 +135,6 @@ h1.eda-title {
 .eda-ov-card {
   background: #ffffff;
   border: 1px solid var(--border);
-  border-top: 3.5px solid var(--teal-600);
   border-radius: var(--radius);
   padding: 16px 18px;
   box-shadow: var(--shadow-card);
@@ -146,10 +145,6 @@ h1.eda-title {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card-hover);
 }
-.eda-ov-card.eda-ov-focus { border-top-color: #0d9488; }
-.eda-ov-card.eda-ov-population { border-top-color: #6366f1; }
-.eda-ov-card.eda-ov-area { border-top-color: #8b5cf6; }
-.eda-ov-card.eda-ov-sample { border-top-color: #10b981; }
 
 .eda-ov-card .ov-label {
   font-family: var(--font-data);
@@ -221,7 +216,6 @@ h1.eda-title {
 .eda-kpi-card {
   background: #ffffff;
   border: 1px solid var(--border);
-  border-top: 4px solid var(--kpi-accent, var(--teal-600));
   border-radius: var(--radius);
   padding: 18px 18px 16px;
   position: relative;
@@ -285,7 +279,6 @@ h1.eda-title {
 .eda-insight-card {
   background: #ffffff;
   border: 1px solid var(--border);
-  border-left: 3.5px solid var(--insight-accent, var(--teal-600));
   border-radius: var(--radius);
   padding: 16px 17px;
   box-shadow: var(--shadow-card);
@@ -366,8 +359,10 @@ h1.eda-title {
 .eda-pill.poor { background: var(--red-pale); color: var(--red-text); }
 .eda-dataset-note {
   font-family: var(--font-body); font-size: 12px; color: var(--ink-soft);
-  background: #ffffff;
-  border-left: 3.5px solid var(--teal-600); border-radius: 0 4px 4px 0; padding: 10px 15px; margin-bottom: 12px; line-height: 1.55;
+  background: var(--teal-pale, #f0fdfa);
+  border: 1px solid var(--teal-border, #99f6e4);
+  border-radius: var(--radius-sm);
+  padding: 10px 15px; margin-bottom: 12px; line-height: 1.55;
   box-shadow: var(--shadow-card);
 }
 
