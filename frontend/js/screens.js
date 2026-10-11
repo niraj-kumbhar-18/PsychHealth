@@ -1363,18 +1363,6 @@ const Screens = {
                 ` : ''}
 
                 <div class="card mb-md">
-                    <div class="flex items-center justify-between mb-sm flex-wrap gap-xs">
-                        <h3 class="font-semibold text-sm">Academic Performance Prediction (ML Status)</h3>
-                        <span class="badge badge-accent">Research Validation In Progress</span>
-                    </div>
-                    <div class="p-sm bg-subtle rounded-md">
-                        <p class="text-xs text-secondary">
-                            <strong>Note on Machine Learning Pipeline:</strong> In accordance with GEMINI.md research integrity rules, the ML model for academic performance prediction is trained strictly on validated empirical datasets. Empirical cohort dataset (N=234) is active for exploratory analysis and validation; ML pipelines are calibrated on verified student response features.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="card mb-md">
                     <h3 class="font-semibold text-base mb-xs">Identified Contributory Factors</h3>
                     <p class="text-xs text-secondary mb-md">Lifestyle and behavioural indicators derived from your questionnaire responses:</p>
 
