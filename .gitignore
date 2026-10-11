@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+*$py.class
+backend/psychhealth_backup.db
+.DS_Store
+Thumbs.db

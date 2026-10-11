@@ -8,7 +8,9 @@
 const API = {
     // Flag to enable actual network requests once FastAPI is deployed
     useBackend: false,
-    baseUrl: 'http://localhost:8000/api',
+    baseUrl: (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http')) 
+        ? `${window.location.origin}/api` 
+        : 'http://localhost:8000/api',
 
     /* --- Profile --- */
     async getProfile() {

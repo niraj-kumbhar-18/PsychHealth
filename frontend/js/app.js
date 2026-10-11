@@ -553,7 +553,13 @@ const App = {
         if (agreeBtn) {
             agreeBtn.onclick = () => {
                 AppState.setConsented(true);
-                window.location.hash = '#/profile';
+                const p = AppState.getProfile();
+                if (p && p.name && p.course) {
+                    Screens.pssCurrentQuestion = 1;
+                    window.location.hash = '#/pss';
+                } else {
+                    window.location.hash = '#/profile';
+                }
             };
         }
     },
@@ -637,8 +643,16 @@ const App = {
         const nextBtn = document.getElementById('btn-pss-next');
         const prevBtn = document.getElementById('btn-pss-prev');
 
+        // Clear any lingering timer from previous question
+        if (this._pssTimer) {
+            clearTimeout(this._pssTimer);
+            this._pssTimer = null;
+        }
+        this._advancingPSS = false;
+
         options.forEach(card => {
-            card.onclick = () => {
+            card.onclick = (e) => {
+                e.preventDefault();
                 if (this._advancingPSS) return;
 
                 options.forEach(c => c.classList.remove('selected'));
@@ -658,30 +672,39 @@ const App = {
                     dots[qIndex - 1].classList.add('done');
                 }
 
-                // Smooth auto-advance after 260ms visual feedback
+                // Smooth auto-advance with pleasant 320ms feedback delay
                 this._advancingPSS = true;
-                setTimeout(() => {
-                    if (Screens.pssCurrentQuestion < 10) {
-                        Screens.pssCurrentQuestion++;
-                        this.handleRoute();
-                    } else {
-                        window.location.hash = '#/lifestyle';
+                const currentQ = Screens.pssCurrentQuestion;
+                this._pssTimer = setTimeout(() => {
+                    this._advancingPSS = false;
+                    this._pssTimer = null;
+                    if (Screens.pssCurrentQuestion === currentQ) {
+                        if (Screens.pssCurrentQuestion < 10) {
+                            Screens.pssCurrentQuestion = currentQ + 1;
+                            this.handleRoute();
+                        } else {
+                            window.location.hash = '#/lifestyle';
+                        }
                     }
-                    setTimeout(() => {
-                        this._advancingPSS = false;
-                    }, 120);
-                }, 260);
+                }, 320);
             };
         });
 
         if (nextBtn) {
-            nextBtn.onclick = () => {
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
                 this.advancePSS();
             };
         }
 
         if (prevBtn) {
-            prevBtn.onclick = () => {
+            prevBtn.onclick = (e) => {
+                e.preventDefault();
+                if (this._pssTimer) {
+                    clearTimeout(this._pssTimer);
+                    this._pssTimer = null;
+                }
+                this._advancingPSS = false;
                 if (Screens.pssCurrentQuestion > 1) {
                     Screens.pssCurrentQuestion--;
                     this.handleRoute();
@@ -698,16 +721,19 @@ const App = {
             return;
         }
 
+        if (this._pssTimer) {
+            clearTimeout(this._pssTimer);
+            this._pssTimer = null;
+        }
         this._advancingPSS = true;
-        if (Screens.pssCurrentQuestion < 10) {
-            Screens.pssCurrentQuestion++;
+        const currentQ = Screens.pssCurrentQuestion;
+        if (currentQ < 10) {
+            Screens.pssCurrentQuestion = currentQ + 1;
             this.handleRoute();
         } else {
             window.location.hash = '#/lifestyle';
         }
-        setTimeout(() => {
-            this._advancingPSS = false;
-        }, 120);
+        this._advancingPSS = false;
     },
 
     bindLifestyleEvents() {

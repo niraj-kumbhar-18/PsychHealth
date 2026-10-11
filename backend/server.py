@@ -15,7 +15,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import database
 
-PORT = 8000
+PORT = int(os.environ.get('PORT', 8000))
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend"))
 
 class PsychHealthHandler(http.server.SimpleHTTPRequestHandler):
@@ -94,7 +94,7 @@ class PsychHealthHandler(http.server.SimpleHTTPRequestHandler):
                 year=body.get('year', ''),
                 gender=body.get('gender', ''),
                 age_group=body.get('age_group', ''),
-                cgpa=body.get('cgpa', '')
+                cgpa=body.get('cgpa') or body.get('academic_performance', '')
             )
             if not ok:
                 self._send_json(409, {"error": msg})
@@ -148,6 +148,23 @@ class PsychHealthHandler(http.server.SimpleHTTPRequestHandler):
             database.add_habit_log(student_id, date, sleep_hours, screen_hours, study_hours, exercise_minutes)
             updated = database.get_student_data(student_id)
             self._send_json(201, {"message": "Habit log saved", "data": updated})
+            return
+
+        elif path == '/api/experiments':
+            student_id = body.get('student_id')
+            exp_id = body.get('experiment_id')
+            baseline_value = body.get('baseline_value', '')
+            days = body.get('days', [])
+            status = body.get('status', 'active')
+            completed_at = body.get('completed_at')
+
+            if not student_id or not exp_id:
+                self._send_json(400, {"error": "student_id and experiment_id are required"})
+                return
+
+            database.save_experiment(student_id, exp_id, baseline_value, days, status, completed_at)
+            updated = database.get_student_data(student_id)
+            self._send_json(200, {"message": "Experiment state synced", "data": updated})
             return
 
         else:

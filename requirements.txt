@@ -1,0 +1,2 @@
+# PsychHealth has zero external dependencies for prototype mode
+# All modules (http.server, sqlite3, json) use standard library Python 3.8+

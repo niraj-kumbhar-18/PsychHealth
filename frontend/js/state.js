@@ -6,7 +6,9 @@
    ============================================================ */
 
 const AppState = {
-    API_URL: 'http://localhost:8000/api',
+    API_URL: (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' && window.location.protocol.startsWith('http')) 
+        ? `${window.location.origin}/api` 
+        : 'http://localhost:8000/api',
     REGISTRY_KEY: 'psychhealth_users_registry_v7',
     ACTIVE_KEY: 'psychhealth_active_user_v7',
     THEME_KEY: 'psychhealth_theme_v7',
@@ -171,11 +173,35 @@ const AppState = {
         if (this._users[sid] && this._users[sid].password === pwd) {
             this._setActiveSession(sid);
             this.resetCurrentAssessment();
+            this._refreshUserDataFromServer(sid);
             return { success: true, student: this._users[sid] };
         }
 
         // If not in local cache, attempt server authentication
         return this._remoteLogin(sid, pwd);
+    },
+
+    async _refreshUserDataFromServer(sid) {
+        try {
+            const res = await fetch(`${this.API_URL}/student/data?student_id=${encodeURIComponent(sid)}`);
+            if (res.ok) {
+                const d = await res.json();
+                if (d && this._users[sid]) {
+                    if (d.assessments && d.assessments.length > 0) {
+                        this._users[sid].assessments = d.assessments;
+                    }
+                    if (d.habit_logs && d.habit_logs.length > 0) {
+                        this._users[sid].habitLog = d.habit_logs;
+                    }
+                    if (d.active_experiment) {
+                        this._users[sid].activeExperiment = d.active_experiment;
+                    }
+                    this._persistRegistry();
+                }
+            }
+        } catch (e) {
+            // Server offline fallback
+        }
     },
 
     async _remoteLogin(sid, pwd) {
@@ -191,7 +217,16 @@ const AppState = {
                 this._users[sid] = {
                     student_id: sid,
                     password: pwd,
-                    profile: d.profile,
+                    profile: {
+                        id: sid,
+                        name: d.profile.name || '',
+                        course: d.profile.course || '',
+                        year: d.profile.year || '',
+                        gender: d.profile.gender || '',
+                        age_group: d.profile.age_group || '',
+                        academic_performance: d.profile.academic_performance || d.profile.cgpa || '',
+                        cgpa: d.profile.cgpa || d.profile.academic_performance || ''
+                    },
                     consented: true,
                     assessments: d.assessments || [],
                     habitLog: d.habit_logs || [],
@@ -391,6 +426,15 @@ const AppState = {
         };
         u.lastCompletedExperiment = null;
         this._persistRegistry();
+
+        // Sync with SQLite server
+        this._syncWithServer('POST', '/experiments', {
+            student_id: u.student_id,
+            experiment_id: expId,
+            baseline_value: baseline,
+            days: [],
+            status: 'active'
+        });
     },
 
     logExperimentDay(data) {
@@ -409,11 +453,15 @@ const AppState = {
             targetMet: safeVal > 0
         });
 
+        let isComplete = false;
+        let finishedExp = null;
+
         if (currentDays.length >= 7) {
+            isComplete = true;
             const vals = currentDays.map(d => d.value);
             const avgDuring = parseFloat((vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1));
             const baseline = u.activeExperiment.baselineValue || 0;
-            const finishedExp = {
+            finishedExp = {
                 ...u.activeExperiment,
                 duringAverage: avgDuring,
                 completionDate: new Date().toISOString(),
@@ -427,6 +475,16 @@ const AppState = {
         }
 
         this._persistRegistry();
+
+        // Sync with SQLite server
+        this._syncWithServer('POST', '/experiments', {
+            student_id: u.student_id,
+            experiment_id: isComplete ? finishedExp.experimentId : u.activeExperiment.experimentId,
+            baseline_value: isComplete ? finishedExp.baselineValue : u.activeExperiment.baselineValue,
+            days: isComplete ? finishedExp.days : u.activeExperiment.days,
+            status: isComplete ? 'completed' : 'active',
+            completed_at: isComplete ? finishedExp.completionDate : null
+        });
     },
 
     // --- Daily Habit Log ---

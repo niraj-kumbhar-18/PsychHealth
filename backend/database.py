@@ -149,12 +149,14 @@ def get_student_data(student_id):
 
     profile = dict(student)
     del profile['password']
+    profile['academic_performance'] = profile.get('cgpa') or ''
 
     # Assessments
     cursor.execute("SELECT * FROM assessments WHERE student_id = ? ORDER BY date ASC", (student_id,))
     assessments = []
     for r in cursor.fetchall():
         item = dict(r)
+        item['profile'] = dict(profile)
         item['responses'] = json.loads(item['responses_json']) if item['responses_json'] else {}
         item['factors'] = json.loads(item['factors_json']) if item['factors_json'] else []
         item['recommendations'] = json.loads(item['recommendations_json']) if item['recommendations_json'] else []
@@ -206,6 +208,28 @@ def add_habit_log(student_id, date, sleep_hours, screen_hours, study_hours, exer
         INSERT INTO habit_logs (student_id, date, sleep_hours, screen_hours, study_hours, exercise_minutes, timestamp)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (student_id, date, sleep_hours, screen_hours, study_hours, exercise_minutes, now))
+    conn.commit()
+    conn.close()
+    return True
+
+def save_experiment(student_id, experiment_id, baseline_value, days, status="active", completed_at=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    # Check if there is an existing active experiment for this student
+    cursor.execute("SELECT id FROM experiments WHERE student_id = ? AND status = 'active'", (student_id,))
+    row = cursor.fetchone()
+    if row:
+        cursor.execute("""
+            UPDATE experiments 
+            SET experiment_id = ?, baseline_value = ?, days_json = ?, status = ?, completed_at = ?
+            WHERE id = ?
+        """, (str(experiment_id), str(baseline_value), json.dumps(days or []), status, completed_at, row['id']))
+    else:
+        cursor.execute("""
+            INSERT INTO experiments (student_id, experiment_id, baseline_value, days_json, status, start_date, completed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (student_id, str(experiment_id), str(baseline_value), json.dumps(days or []), status, now, completed_at))
     conn.commit()
     conn.close()
     return True
