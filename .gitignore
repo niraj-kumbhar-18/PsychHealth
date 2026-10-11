@@ -1,7 +1,26 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+
+# Local SQLite databases & backups
 backend/psychhealth_backup.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Archives, raw exports & scratch files
+*.zip
+dashboard*.html
+scratch_*.py
+
+# Duplicate datasets
+frontend/PsychHealth.csv
+
+# Agent tooling skills (keep local, excluded from git repo)
+.agents/skills/impeccable/
+
+# OS metadata
 .DS_Store
 Thumbs.db
-dashboard*.html
