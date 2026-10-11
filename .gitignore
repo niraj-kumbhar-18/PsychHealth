@@ -18,8 +18,9 @@ scratch_*.py
 # Duplicate datasets
 frontend/PsychHealth.csv
 
-# Agent tooling skills (keep local, excluded from git repo)
-.agents/skills/impeccable/
+# Agent tooling / skills (keep local, excluded from GitHub repo)
+.agents/
+skills-lock.json
 
 # OS metadata
 .DS_Store
