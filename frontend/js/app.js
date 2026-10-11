@@ -59,6 +59,11 @@ const App = {
             };
         }
 
+        // Lock research portal on browser unload/close
+        window.addEventListener('beforeunload', () => {
+            AppState.setAdminAuthenticated(false);
+        });
+
         // Render Sidebar Navigation Links
         this.renderSidebarNav();
     },
@@ -183,6 +188,10 @@ const App = {
                     window.location.hash = '#/login';
                     return;
                 }
+                const targetRoute = link.getAttribute('data-route');
+                if (targetRoute && targetRoute !== 'researcher' && AppState.isAdminAuthenticated()) {
+                    AppState.setAdminAuthenticated(false);
+                }
                 const sidebar = document.getElementById('app-sidebar');
                 const backdrop = document.getElementById('sidebar-backdrop');
                 if (sidebar) sidebar.classList.remove('open');
@@ -218,6 +227,11 @@ const App = {
             if (!Screens.pssCurrentQuestion || Screens.pssCurrentQuestion < 1 || Screens.pssCurrentQuestion > 10) {
                 Screens.pssCurrentQuestion = 1;
             }
+        }
+
+        // Auto-lock research dashboard when navigating to any page other than researcher portal
+        if (route !== 'researcher' && route !== 'methodology' && AppState.isAdminAuthenticated()) {
+            AppState.setAdminAuthenticated(false);
         }
 
         this.currentRoute = route;

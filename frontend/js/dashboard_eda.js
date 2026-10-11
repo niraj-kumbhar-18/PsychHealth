@@ -1103,6 +1103,13 @@ const DashboardEDA = {
                 }
             };
         }
+
+        // Auto-lock whenever exiting to student portal or any other screen
+        document.querySelectorAll('a[href="#/dashboard"]').forEach(link => {
+            link.addEventListener('click', () => {
+                AppState.setAdminAuthenticated(false);
+            });
+        });
     }
 };
 
